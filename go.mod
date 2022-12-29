@@ -1,4 +1,4 @@
-module sparta-utils
+module github.com/4books-sparta/utils
 
 go 1.19
 
