@@ -68,3 +68,7 @@ func GetDbConfig() DbConfig {
 		MaxOpen:  viper.GetInt("db_open"),
 	}
 }
+
+func DBErrorNotFound(err error) bool {
+	return errors.Is(err, gorm.ErrRecordNotFound)
+}
