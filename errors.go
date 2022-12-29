@@ -1,6 +1,13 @@
 package utils
 
-import "net/http"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"gopkg.in/go-playground/validator.v9"
+)
 
 const (
 	ErrorFirebaseEmailMissing         = "no firebase email available"
@@ -72,4 +79,31 @@ func (e InvalidRequestError) Error() string {
 
 func (e InvalidRequestError) Code() int {
 	return http.StatusUnprocessableEntity
+}
+
+type ValidationError struct {
+	Children validator.ValidationErrors
+}
+
+func (v ValidationError) Error() string {
+	var b strings.Builder
+	for _, err := range v.Children {
+		template := fmt.Sprintf("%s=%s|", err.StructField(), err.Tag())
+		b.WriteString(template)
+	}
+
+	return b.String()
+}
+
+func (v ValidationError) Code() int {
+	return http.StatusUnprocessableEntity
+}
+
+func (v ValidationError) MarshalJSON() ([]byte, error) {
+	content := make(map[string]string)
+	for _, err := range v.Children {
+		content[err.Field()] = fmt.Sprintf("failed '%s' validation", err.Tag())
+	}
+
+	return json.Marshal(content)
 }
