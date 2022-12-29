@@ -8,6 +8,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/prometheus/client_golang v1.14.0
 	github.com/spf13/viper v1.14.0
+	goji.io v2.0.2+incompatible
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gorm.io/driver/postgres v1.4.5
 	gorm.io/gorm v1.24.2
