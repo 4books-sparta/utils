@@ -107,3 +107,12 @@ func (v ValidationError) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(content)
 }
+
+func PrintVarDump(title, i interface{}) {
+	fmt.Printf("\n------\n%s \n %s \n", title, VarDump(i))
+}
+
+func VarDump(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", " ")
+	return string(s)
+}
