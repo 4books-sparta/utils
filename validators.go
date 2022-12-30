@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 
@@ -35,15 +34,27 @@ func isSlug(fl validator.FieldLevel) bool {
 	return IsSlug(fl.Field().String())
 }
 
-func DecodeRequestBody(req *http.Request, request interface{}) error {
-	b, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return err
-	}
-
-	//fmt.Printf("\nDecodingBody... \n %s", b)
+func DecodeRequestBody(req *http.Request, ret interface{}) error {
+	b, err := DecodeToInterface(req.Body, ret)
 
 	req.Body = io.NopCloser(bytes.NewBuffer(b))
 
-	return json.Unmarshal(b, request)
+	return err
+}
+
+func DecodeResponseBody(res *http.Response, ret interface{}) error {
+	b, err := DecodeToInterface(res.Body, ret)
+
+	res.Body = io.NopCloser(bytes.NewBuffer(b))
+
+	return err
+}
+
+func DecodeToInterface(r io.Reader, ret interface{}) ([]byte, error) {
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	return b, json.Unmarshal(b, ret)
 }
