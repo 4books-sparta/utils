@@ -119,15 +119,6 @@ func setCORS(w http.ResponseWriter) {
 	h.Set("Access-Control-Allow-Headers", "Content-Type, Accept-Language, Authorization, X-Cms-Version, x-client-type, x-client-version")
 }
 
-func DecodeEmptyRequest(_ context.Context, _ *http.Request) (interface{}, error) {
-	return struct{}{}, nil
-}
-
-func DecodeRefreshableRequest(_ context.Context, req *http.Request) (interface{}, error) {
-	_, ok := req.URL.Query()["refresh"]
-	return ok, nil
-}
-
 type RedirectResponse interface {
 	RedirectTo() string
 }
