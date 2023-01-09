@@ -72,17 +72,16 @@ func NewDatabase(c DbConfig) (*SqlDatabase, error) {
 
 func GetDbConfig() DbConfig {
 	return DbConfig{
-		Vendor:            viper.GetString("db_vendor"),
-		Host:              viper.GetString("db_host"),
-		Port:              uint16(viper.GetInt("db_port")),
-		Username:          viper.GetString("db_user"),
-		Password:          viper.GetString("db_password"),
-		Name:              viper.GetString("db_name"),
-		SSL:               viper.GetString("db_ssl"),
-		Timeout:           time.Duration(viper.GetInt("db_timeout")) * time.Minute,
-		MaxIdle:           viper.GetInt("db_idle"),
-		MaxOpen:           viper.GetInt("db_open"),
-		LogErrorToConsole: viper.GetString("log_errors") == "y",
+		Vendor:   viper.GetString("db_vendor"),
+		Host:     viper.GetString("db_host"),
+		Port:     uint16(viper.GetInt("db_port")),
+		Username: viper.GetString("db_user"),
+		Password: viper.GetString("db_password"),
+		Name:     viper.GetString("db_name"),
+		SSL:      viper.GetString("db_ssl"),
+		Timeout:  time.Duration(viper.GetInt("db_timeout")) * time.Minute,
+		MaxIdle:  viper.GetInt("db_idle"),
+		MaxOpen:  viper.GetInt("db_open"),
 	}
 }
 
