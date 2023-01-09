@@ -18,7 +18,7 @@ type UserSearchRequest struct {
 }
 
 type LocalizedRequest struct {
-	Locale string `json:"locale"`
+	Locale string `json:"locale" validate:"required"`
 }
 
 type LocalizedPagedUserSearchRequest struct {
