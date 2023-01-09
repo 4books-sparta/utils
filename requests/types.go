@@ -26,3 +26,9 @@ type LocalizedPagedUserSearchRequest struct {
 	UserSearchRequest
 	LocalizedRequest
 }
+
+type ContRequest struct {
+	ContType      string   `json:"cont_type"`
+	PublishStates []string `json:"publish_states"`
+	LocalizedRequest
+}
