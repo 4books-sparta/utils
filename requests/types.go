@@ -7,3 +7,8 @@ type StringIdRequest struct {
 type IdRequest struct {
 	Id int `json:"id" validate:"required"`
 }
+
+type PagedRequest struct {
+	Limit  uint `json:"limit"`
+	Offset uint `json:"offset"`
+}
