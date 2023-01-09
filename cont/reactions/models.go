@@ -2,6 +2,11 @@ package reactions
 
 import "time"
 
+const (
+	ReactionFollowKey = "follow"
+	ReactionLiked     = "liked"
+)
+
 type Feedback struct {
 	UserId    uint32     `json:"user_id,omitempty"  validate:"required" gorm:"primary_key"`
 	Locale    string     `json:"-" gorm:"primary_key"`
