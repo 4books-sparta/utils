@@ -3,11 +3,14 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DbConfig struct {
@@ -37,7 +40,20 @@ func NewDatabase(c DbConfig) (*SqlDatabase, error) {
 		return nil, errors.New("unsupported-dialect-" + c.Vendor)
 	}
 
-	db, err := gorm.Open(postgres.Open(c.connectUrl()), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,   // Slow SQL threshold
+			LogLevel:                  logger.Silent, // Log level
+			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,         // Disable color
+		},
+	)
+	config := gorm.Config{
+		Logger: newLogger,
+	}
+
+	db, err := gorm.Open(postgres.Open(c.connectUrl()), &config)
 	if err != nil {
 		return nil, err
 	}
@@ -56,16 +72,17 @@ func NewDatabase(c DbConfig) (*SqlDatabase, error) {
 
 func GetDbConfig() DbConfig {
 	return DbConfig{
-		Vendor:   viper.GetString("db_vendor"),
-		Host:     viper.GetString("db_host"),
-		Port:     uint16(viper.GetInt("db_port")),
-		Username: viper.GetString("db_user"),
-		Password: viper.GetString("db_password"),
-		Name:     viper.GetString("db_name"),
-		SSL:      viper.GetString("db_ssl"),
-		Timeout:  time.Duration(viper.GetInt("db_timeout")) * time.Minute,
-		MaxIdle:  viper.GetInt("db_idle"),
-		MaxOpen:  viper.GetInt("db_open"),
+		Vendor:            viper.GetString("db_vendor"),
+		Host:              viper.GetString("db_host"),
+		Port:              uint16(viper.GetInt("db_port")),
+		Username:          viper.GetString("db_user"),
+		Password:          viper.GetString("db_password"),
+		Name:              viper.GetString("db_name"),
+		SSL:               viper.GetString("db_ssl"),
+		Timeout:           time.Duration(viper.GetInt("db_timeout")) * time.Minute,
+		MaxIdle:           viper.GetInt("db_idle"),
+		MaxOpen:           viper.GetInt("db_open"),
+		LogErrorToConsole: viper.GetString("log_errors") == "y",
 	}
 }
 
