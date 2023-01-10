@@ -33,7 +33,7 @@ type ContRequest struct {
 	LocalizedPagedUserSearchRequest
 	IntId    int    `json:"id"`
 	StringId string `json:"s_id"`
-	Slug     string `json:"slug"`
+	Slug     string `json:"slug" validate:"slug"`
 }
 
 type SlugRequest struct {
