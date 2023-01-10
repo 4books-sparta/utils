@@ -31,4 +31,11 @@ type ContRequest struct {
 	ContType      string   `json:"cont_type"`
 	PublishStates []string `json:"publish_states"`
 	LocalizedPagedUserSearchRequest
+	IntId    int    `json:"id"`
+	StringId string `json:"s_id"`
+	Slug     string `json:"slug"`
+}
+
+type SlugRequest struct {
+	Slug string `json:"slug"`
 }
