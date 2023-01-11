@@ -82,6 +82,14 @@ func RedisRemoveKey(c redis.UniversalClient, key string) error {
 	return c.Del(context.Background(), key).Err()
 }
 
+func RedisRemoveSlice(c redis.UniversalClient, keys []string) error {
+	if c == nil {
+		return errors.New(RedisNotAvailableError)
+	}
+
+	return c.Del(context.Background(), keys...).Err()
+}
+
 func RedisRemoveKeys(c redis.UniversalClient, startWith string) error {
 	if c == nil {
 		return errors.New(RedisNotAvailableError)
