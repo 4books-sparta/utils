@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
@@ -51,6 +52,20 @@ func DecodeResponseBody(res *http.Response, ret interface{}) error {
 	res.Body = io.NopCloser(bytes.NewBuffer(b))
 
 	return err
+}
+
+type Msg struct {
+	Message string `json:"message"`
+}
+
+func ServiceResponse2Error(res *http.Response) error {
+	msg := Msg{}
+	err := DecodeResponseBody(res, &msg)
+	if err != nil {
+		return err
+	}
+
+	return errors.New(msg.Message)
 }
 
 func DecodeToInterface(r io.Reader, ret interface{}) ([]byte, error) {
