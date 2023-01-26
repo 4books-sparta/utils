@@ -26,6 +26,10 @@ type ContFavourite struct {
 	CreatedAt *time.Time `json:"-"`
 }
 
+type SkillFavouriteSaveRequest struct {
+	Rows []*SkillFavourite `json:"data" validate:"required"`
+}
+
 type SkillFavourite struct {
 	SkillId uint32 `json:"skill_id"  validate:"required" gorm:"primary_key"`
 	ContFavourite
