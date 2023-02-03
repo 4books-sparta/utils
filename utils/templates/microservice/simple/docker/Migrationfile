@@ -1,8 +1,0 @@
-FROM golang:1.16
-
-# Download and install the migration tool
-RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-
-# Copy all of the migrations
-COPY migrations/postgres /home/migrations
-WORKDIR /home

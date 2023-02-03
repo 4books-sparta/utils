@@ -17,7 +17,7 @@ STAGE_DB_HOST=$DB_HOST
 
 source .env
 
-TEMPLATES_FOLDER=${SCRIPT_DIR}/templates/microservice/$MODULE_TYPE
+TEMPLATE=${SCRIPT_DIR}/templates/microservice/$MODULE_TYPE.tgz
 
 DEST_FOLDER=${BASE_PATH}/${MODULE}
 
@@ -34,7 +34,7 @@ fi
 echo -e $DONE
 
 echo "Moving template files"
-cp -r ${TEMPLATES_FOLDER}/* $DEST_FOLDER
+tar -xzf ${TEMPLATE} -C $DEST_FOLDER
 
 echo "Creating main service..."
 mv ${DEST_FOLDER}/pkg/service/test-svc ${DEST_FOLDER}/pkg/service/${SERVICE_NAME}
