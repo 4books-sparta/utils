@@ -1,0 +1,152 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sparta-ms---service-name--
+  namespace: 4books-sparta
+  labels:
+    app: sparta-ms-cont
+spec:
+  type: ClusterIP
+  selector:
+    app: sparta-ms---service-name--
+  ports:
+    - port: 80
+      targetPort: 8101
+      protocol: TCP
+      name: sparta-ms---service-name--
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sparta-ms---service-name--
+  namespace: 4books-sparta
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sparta-ms---service-name--
+  template:
+    metadata:
+      namespace: 4books-sparta
+      labels:
+        app: sparta-ms---service-name--
+    spec:
+      initContainers:
+        - name: migrations
+          imagePullPolicy: Always
+          image: "--migration-image--"
+          env:
+            - name: DB_HOST
+              value: "--DB_HOST--"
+            - name: DB_PORT
+              value: "--DB_PORT--"
+            - name: DB_SSL
+              value: "disable"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: prod-secret
+                  key: dbUser
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: prod-secret
+                  key: dbPassword
+
+            - name: DB_NAME
+              value: "--DB_NAME--"
+            - name: DB_OPEN
+              value: "60"
+      terminationGracePeriodSeconds: 101
+      containers:
+      - name: sparta-ms-cont
+        image: "--microservice-image--"
+        command: ["sparta_ms_--service-name--", "gateway"]
+        imagePullPolicy: Always
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep","90"]
+        ports:
+          - name: sparta-ms---service-name--
+            containerPort: 8101
+        readinessProbe:
+          httpGet:
+            path: /_probe
+            port: sparta-ms---service-name--
+          initialDelaySeconds: 30
+          periodSeconds: 2
+          timeoutSeconds: 3
+          failureThreshold: 5
+          successThreshold: 5
+        resources:
+          requests:
+            cpu: 400m
+            memory: 400Mi
+        env:
+          - name: PORT
+            value: "8101"
+          - name: DB_HOST
+            value: "--DB_HOST--"
+          - name: DB_PORT
+            value: "--DB_PORT--"
+          - name: DB_SSL
+            value: "disable"
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: prod-secret
+                key: dbUser
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: prod-secret
+                key: dbPassword
+
+          - name: DB_NAME
+            value: "--DB_NAME--"
+          - name: DB_OPEN
+            value: "60"
+          - name: SENTRY_DSN
+            valueFrom:
+              secretKeyRef:
+                name: prod-secret
+                key: sentryDsn
+          - name: REDIS_CACHE_ENABLED
+            value: "yes"
+          - name: REDIS_PORT
+            value: "6379"
+          - name: REDIS_HOST
+            value: "redis-layer-master.cache.svc.cluster.local"
+          - name: REDIS_CLUSTER
+            value: "no"
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: 4books-sparta---service-name---serv
+  namespace: 4books-sparta
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sparta-ms---service-name--
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+

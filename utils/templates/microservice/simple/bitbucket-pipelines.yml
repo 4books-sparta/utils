@@ -1,0 +1,99 @@
+image:
+  name: atlassian/pipelines-awscli
+
+definitions:
+  buildMigrationImageStage: &buildMigrationImageStage
+    name: MigrationStageImage
+    caches:
+      - docker
+    services:
+      - docker
+    script:
+      - export IMAGE=--aws-account-id--.dkr.ecr.eu-west-1.amazonaws.com/sparta-ms---service-name---migrations-staging:latest
+      - aws ecr get-login --no-include-email > ./login-string.txt
+      - /bin/bash < ./login-string.txt
+      - /bin/cp -r migrations/postgres/*.sql docker/images/migrations/data/postgres
+      - docker build -f docker/images/migrations/Dockerfile -t $IMAGE ./docker/images/migrations
+      - docker push $IMAGE
+  buildImageStage: &buildImageStage
+    name: BuildAndPushDockerImage
+    caches:
+      - docker
+    services:
+      - docker
+    script:
+      - export BASE_IMAGE=--aws-account-id--.dkr.ecr.eu-west-1.amazonaws.com/sparta-ms---service-name---staging
+      - export IMAGE=${BASE_IMAGE}:build-$BITBUCKET_COMMIT
+      - aws ecr get-login --no-include-email > ./login-string.txt
+      - /bin/bash < ./login-string.txt
+      - docker build -f docker/images/microservice/Dockerfile -t $IMAGE .
+      - docker push $IMAGE
+      - export NEWTAG=${BASE_IMAGE}:latest
+      - docker tag $IMAGE $NEWTAG
+      - docker push $NEWTAG
+    artifacts:
+      - login-string.txt
+  deployToStagingK8s: &deployToStagingK8s
+    name: DeployToKubernetesInStage
+    deployment: staging
+    image: 4bdevops/kubedeploy:latest
+    script:
+      - mkdir ~/.kube
+      - echo $KUBE_CONFIG_122 | base64 -d > ~/.kube/config
+      - chmod a+x kubernetes/staging/prepare-deploy.sh
+      - kubernetes/staging/prepare-deploy.sh
+      - kubectl apply -f kubernetes/staging/deployment.yaml
+
+  buildMigrationImageProd: &buildMigrationImageProd
+    name: MigrationStageImage
+    caches:
+      - docker
+    services:
+      - docker
+    script:
+      - export IMAGE=--aws-account-id--.dkr.ecr.eu-west-1.amazonaws.com/sparta-ms---service-name---migrations:latest
+      - aws ecr get-login --no-include-email > ./login-string.txt
+      - /bin/bash < ./login-string.txt
+      - /bin/cp -r migrations/postgres/*.sql docker/images/migrations/data/postgres
+      - docker build -f docker/images/migrations/Dockerfile -t $IMAGE ./docker/images/migrations
+      - docker push $IMAGE
+  buildImageProd: &buildImageProd
+    name: BuildAndPushDockerImage
+    caches:
+      - docker
+    services:
+      - docker
+    script:
+      - export BASE_IMAGE=--aws-account-id--.dkr.ecr.eu-west-1.amazonaws.com/sparta-ms---service-name--
+      - export IMAGE=${BASE_IMAGE}:build-$BITBUCKET_COMMIT
+      - aws ecr get-login --no-include-email > ./login-string.txt
+      - /bin/bash < ./login-string.txt
+      - docker build -f docker/images/microservice/Dockerfile -t $IMAGE .
+      - docker push $IMAGE
+      - export NEWTAG=${BASE_IMAGE}:latest
+      - docker tag $IMAGE $NEWTAG
+      - docker push $NEWTAG
+    artifacts:
+      - login-string.txt
+  deployToProdK8s: &deployToProdK8s
+    name: DeployToKubernetesInProduction
+    deployment: staging
+    image: 4bdevops/kubedeploy:latest
+    script:
+      - mkdir ~/.kube
+      - echo $KUBE_CONFIG_122 | base64 -d > ~/.kube/config
+      - chmod a+x kubernetes/production/prepare-deploy.sh
+      - kubernetes/production/prepare-deploy.sh
+      - kubectl apply -f kubernetes/production/deployment.yaml
+
+pipelines:
+  branches:
+    staging:
+      #TODO add tests
+      - step: *buildImageStage
+      - step: *buildMigrationImageStage
+      - step: *deployToStagingK8s
+    master:
+      - step: *buildImageProd
+      - step: *buildMigrationImageProd
+      - step: *deployToProdK8s

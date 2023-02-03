@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  test:
+    image: 4books/--module---test:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile_test
+    command: bash -c "cd docker/test-scripts && source do_tests.sh"
+    # command: tail -f /dev/null
+    depends_on:
+      - postgres
+    volumes:
+      - sharedContTest:/sharedContTest
+      - ../:/home/sparta
+    environment:
+      DONT_EXIT_ON_END: ${DONT_EXIT_ON_END}
+      TESTING: "true"
+
+  init:
+    image: init---module--:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile_init
+    working_dir: /home
+    command: bash -c ". do_init.sh"
+    volumes:
+      - ../docker/test-scripts/do_init.sh:/home/do_init.sh
+      - sharedContTest:/sharedContTest
+  migrate:
+    image: migrate---module--:latest
+    build:
+      context: ..
+      dockerfile: docker/Migrationfile
+    command: bash -c ". do_migrate.sh"
+    volumes:
+      - ../docker/test-scripts/wait-for-it.sh:/home/wait-for-it.sh
+      - ../docker/test-scripts/do_migrate.sh:/home/do_migrate.sh
+      - sharedContTest:/sharedContTest
+  
+  postgres-fill:
+    image: postgres:12-alpine
+    working_dir: /home
+    command: bash -c ". do_postgres-fill.sh"
+    volumes:
+      - ../docker/test-scripts/do_postgres-fill.sh:/home/do_postgres-fill.sh
+      - ../docker/postgres/test_dump.sql:/home/test_dump.sql
+      - sharedContTest:/sharedContTest
+  
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: --dbname--_test
+      POSTGRES_USER: --dbuser--
+      POSTGRES_PASSWORD: --dbpass--
+    volumes:
+      - dbContDataTest:/var/lib/postgresql/data
+
+volumes:
+  dbContDataTest:
+  sharedContTest:
+    

@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sparta-ms---service-name--
+  namespace: 4books-sparta-staging
+  labels:
+    app: sparta-ms---service-name--
+spec:
+  type: ClusterIP
+  selector:
+    app: sparta-ms---service-name--
+  ports:
+    - port: 80
+      targetPort: 8101
+      protocol: TCP
+      name: sparta-ms---service-name--
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sparta-ms---service-name--
+  namespace: 4books-sparta-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sparta-ms---service-name--
+  template:
+    metadata:
+      namespace: 4books-sparta
+      labels:
+        app: sparta-ms---service-name--
+    spec:
+      initContainers:
+        - name: migrations
+          imagePullPolicy: Always
+          image: "--migration-image--"
+          env:
+            - name: DB_HOST
+              value: "--DB_HOST--"
+            - name: DB_PORT
+              value: "--DB_PORT--"
+            - name: DB_SSL
+              value: "disable"
+            - name: DB_USER
+              value: "--DB_USER--"
+            - name: DB_PASSWORD
+              value: "--DB_PASSWORD--"
+            - name: DB_NAME
+              value: "--DB_NAME--"
+            - name: DB_OPEN
+              value: "60"
+      terminationGracePeriodSeconds: 101
+      containers:
+      - name: sparta-ms---service-name--
+        image: "--microservice-image--"
+        command: ["sparta_ms_--service-name--", "gateway"]
+        imagePullPolicy: Always
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep","90"]
+        ports:
+          - name: sparta-ms---service-name--
+            containerPort: 8101
+        readinessProbe:
+          httpGet:
+            path: /_probe
+            port: sparta-ms---service-name--
+          initialDelaySeconds: 30
+          periodSeconds: 2
+          timeoutSeconds: 3
+          failureThreshold: 5
+          successThreshold: 5
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        env:
+          - name: PORT
+            value: "8101"
+          - name: DB_HOST
+            value: "--DB_HOST--"
+          - name: DB_PORT
+            value: "--DB_PORT--"
+          - name: DB_SSL
+            value: "disable"
+          - name: DB_USER
+            value: "--DB_USER--"
+          - name: DB_PASSWORD
+            value: "--DB_PASSWORD--"
+          - name: DB_NAME
+            value: "--DB_NAME--"
+          - name: DB_OPEN
+            value: "60"
+          - name: SENTRY_DSN
+            value: https://fabcc61e50cf4e79b3668daac3a3f079:9e63395291fe430087729240ad31a3a2@sentry.io/1474728
+          - name: REDIS_CACHE_ENABLED
+            value: "yes"
+          - name: REDIS_PORT
+            value: "6379"
+          - name: REDIS_HOST
+            value: "redis-layer-staging-master.cache-staging.svc.cluster.local"
+          - name: REDIS_CLUSTER
+            value: "no"
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0

@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    container_name: 4books---service-name--_db
+    environment:
+      POSTGRES_DB: --dbname--
+      POSTGRES_USER: --dbuser--
+      POSTGRES_PASSWORD: --dbpass--
+    volumes:
+      - dbDataSparta--service-name--:/var/lib/postgresql/data
+    ports:
+      - 6544:5432
+
+volumes:
+  dbDataSparta--service-name--:
