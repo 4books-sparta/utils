@@ -169,6 +169,10 @@ func RedisHStore(c redis.UniversalClient, key string, title string, value interf
 	return nil
 }
 
+func RedisSetKeyExpiration(c redis.UniversalClient, key string, seconds int) error {
+	return c.Expire(context.Background(), key, time.Duration(seconds)*time.Second).Err()
+}
+
 func HashKey(i interface{}) (string, error) {
 	data, err := json.Marshal(&i)
 	if err != nil {
