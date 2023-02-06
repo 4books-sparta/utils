@@ -88,4 +88,13 @@ echo "Please create 4 databases (dev, minikube, staging, prod):"
 echo -e "${CYAN} CREATE DATABASE ${DEVDBNAME} OWNER ${DEVDBUSER}; ${NOCOLOR}"
 echo -e "${CYAN} CREATE DATABASE ${PRODDBNAME} OWNER king; ${NOCOLOR}"
 
+source $PROD_ENV_FILE
+
+echo "Please create this ENV vars in bitbucket pipelines:"
+echo -e "${CYAN} AWS_ACCESS_KEY_ID: ${AWS_DEPLOYER_ACCESS_KEY}  ${NOCOLOR}"
+echo -e "${CYAN} KUBE_CONFIG_XXX: ${NOCOLOR}"
+echo -e "${CYAN} AWS_DEFAULT_REGION:  ${NOCOLOR}"
+echo -e "${CYAN} AWS_SECRET_ACCESS_KEY: ${AWS_DEPLOYER_SECRET_KEY} ${NOCOLOR}"
+
+
 echo -e $DONE
