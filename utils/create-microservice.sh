@@ -42,6 +42,12 @@ echo -e $DONE
 
 echo "Replacing placeholders..."
 for f in $(find ${DEST_FOLDER}/ -type f); do
+    if [[ "$f" == *".git/"* ]]; then
+	continue
+    fi
+    if [[ "$f" == *".idea/"* ]]; then
+	continue
+    fi
     sed -i "s|--module--|${MODULE}|g" $f
     sed -i "s|--utils-tag--|${LAST_UTILS_TAG}|g" $f
     sed -i "s|--service-name--|${SERVICE_NAME}|g" $f
@@ -54,6 +60,7 @@ for f in $(find ${DEST_FOLDER}/ -type f); do
     sed -i "s|--dbuser--|${DEVDBUSER}|g" $f
     sed -i "s|--dbpass--|${DEVDBPASS}|g" $f
     sed -i "s|--aws-account-id--|${AWS_ACCOUNT_ID}|g" $f
+    sed -i "s|--dbname--|${DEVDBNAME}|g" $f
 done;
 echo -e $DONE
 
