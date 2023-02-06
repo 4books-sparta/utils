@@ -9,13 +9,14 @@ DONE=${GREEN}OK${NOCOLOR}
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 LAST_UTILS_TAG=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/4books-sparta/utils '*.*.*' | tail --lines=1 | cut --delimiter='/' --fields=3)
 
+source .env
 
-source $STAGING_ENV_FILE
+source ${STAGING_ENV_FILE}
 STAGE_DB_USER=$DB_USER
 STAGE_DB_PASS=$DB_PASSWORD
 STAGE_DB_HOST=$DB_HOST
 
-source .env
+
 
 TEMPLATE=${SCRIPT_DIR}/templates/microservice/$MODULE_TYPE.tgz
 
