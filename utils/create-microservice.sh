@@ -61,6 +61,7 @@ for f in $(find ${DEST_FOLDER}/ -type f); do
     sed -i "s|--dbpass--|${DEVDBPASS}|g" $f
     sed -i "s|--aws-account-id--|${AWS_ACCOUNT_ID}|g" $f
     sed -i "s|--dbname--|${DEVDBNAME}|g" $f
+    sed -i "s|--port-name--|${SVC_PORT_NAME}|g" $f
 done;
 echo -e $DONE
 
