@@ -27,7 +27,9 @@ type ContFavourite struct {
 }
 
 type SkillFavouriteSaveRequest struct {
-	Rows []*SkillFavourite `json:"data" validate:"required,dive"`
+	Rows   []*SkillFavourite `json:"data" validate:"required,dive"`
+	Clean  bool              `json:"-"`
+	UserId uint32            `json:"-"`
 }
 
 type SkillFavourite struct {
