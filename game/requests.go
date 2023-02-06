@@ -4,7 +4,7 @@ import "time"
 
 type SkillXP struct {
 	SkillId uint32 `json:"skill_id" validate:"required" gorm:"primaryKey"`
-	Locale  string `json:"locale" validate:"required" gorm:"primaryKey"`
+	Locale  string `json:"locale,omitempty" validate:"required" gorm:"primaryKey"`
 	XP      int    `json:"xp"`
 }
 
