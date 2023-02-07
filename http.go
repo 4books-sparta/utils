@@ -184,3 +184,10 @@ func (msc MicroserviceClient) Delete(path string, ret interface{}) error {
 func (msc MicroserviceClient) getUrl(path string) string {
 	return msc.Url + ":" + strconv.Itoa(int(msc.Port)) + path
 }
+
+type HttpMicroClient interface {
+	Post(url string, payload interface{}, ret interface{}) error
+	Patch(url string, payload interface{}, ret interface{}) error
+	Get(url string, ret interface{}, VV url.Values) error
+	Delete(url string, ret interface{}) error
+}
