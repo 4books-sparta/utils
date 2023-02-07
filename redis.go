@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +33,10 @@ const (
 
 	RedisMsCKGetUserSkillXPs = "msg|usk|xp"
 )
+
+func RedisGetUserSkillXPsCacheKey(uid uint32, lang string) string {
+	return RedisMsCKGetUserSkillXPs + "|" + strconv.Itoa(int(uid)) + "|" + lang
+}
 
 type RedisConfig struct {
 	Enabled   bool
