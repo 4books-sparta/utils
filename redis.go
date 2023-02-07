@@ -29,6 +29,8 @@ const (
 	RedisOneDayExp         = 60 * 60 * 24      //1 day
 	RedisVeryLongUserExp   = 60 * 60 * 2       //2 hours
 	RedisNotAvailableError = "redis-not-available"
+
+	RedisMsCKGetUserSkillXPs = "msg|usk|xp"
 )
 
 type RedisConfig struct {
