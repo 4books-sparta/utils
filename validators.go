@@ -7,9 +7,32 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strings"
+	"unicode"
 
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 	"gopkg.in/go-playground/validator.v9"
 )
+
+func String2Slug(input string) string {
+	input = strings.TrimSpace(input)
+	input = strings.ToLower(input)
+
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	output, _, e := transform.String(t, input)
+	if e != nil {
+		panic(e)
+	}
+
+	input = output
+
+	reg, _ := regexp.Compile("[^a-z0-9-]+")
+	input = reg.ReplaceAllString(input, "-")
+
+	return input
+}
 
 func IsSlug(in string) bool {
 	if in == "" {
