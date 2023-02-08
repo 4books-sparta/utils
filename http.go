@@ -10,9 +10,10 @@ import (
 )
 
 type MicroserviceClient struct {
-	TimeOut time.Duration
-	Url     string
-	Port    uint
+	TimeOut          time.Duration
+	Url              string
+	Port             uint
+	PermanentHeaders map[string]string
 }
 
 func (msc MicroserviceClient) Post(path string, payload interface{}, ret interface{}) error {
@@ -28,6 +29,8 @@ func (msc MicroserviceClient) Post(path string, payload interface{}, ret interfa
 	}
 
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	msc.fillPermanentHeaders(request)
+
 	client := &http.Client{}
 	if msc.TimeOut > 0 {
 		client.Timeout = msc.TimeOut
@@ -70,6 +73,8 @@ func (msc MicroserviceClient) Patch(path string, payload interface{}, ret interf
 	}
 
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	msc.fillPermanentHeaders(request)
+
 	client := &http.Client{}
 	if msc.TimeOut > 0 {
 		client.Timeout = msc.TimeOut
@@ -111,6 +116,8 @@ func (msc MicroserviceClient) Get(path string, ret interface{}, VV url.Values) e
 	}
 
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	msc.fillPermanentHeaders(request)
+
 	client := &http.Client{}
 	if msc.TimeOut > 0 {
 		client.Timeout = msc.TimeOut
@@ -144,6 +151,15 @@ func (msc MicroserviceClient) Get(path string, ret interface{}, VV url.Values) e
 	return nil
 }
 
+func (msc MicroserviceClient) fillPermanentHeaders(req *http.Request) {
+	if msc.PermanentHeaders == nil {
+		return
+	}
+	for k, v := range msc.PermanentHeaders {
+		req.Header.Set(k, v)
+	}
+}
+
 func (msc MicroserviceClient) Delete(path string, ret interface{}) error {
 	u := msc.getUrl(path)
 	request, err := http.NewRequest("DELETE", u, bytes.NewBuffer([]byte("")))
@@ -152,6 +168,8 @@ func (msc MicroserviceClient) Delete(path string, ret interface{}) error {
 	}
 
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	msc.fillPermanentHeaders(request)
+
 	client := &http.Client{}
 	if msc.TimeOut > 0 {
 		client.Timeout = msc.TimeOut
