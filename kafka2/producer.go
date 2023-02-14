@@ -3,14 +3,15 @@ package kafka2
 import (
 	"context"
 	"errors"
-	"github.com/twmb/franz-go/pkg/kgo"
-	"github.com/twmb/franz-go/pkg/sasl/plain"
-	"github.com/twmb/franz-go/pkg/sasl/scram"
 	"log"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/twmb/franz-go/pkg/kgo"
+	"github.com/twmb/franz-go/pkg/sasl/plain"
+	"github.com/twmb/franz-go/pkg/sasl/scram"
 )
 
 type KafkaProducer struct {
@@ -123,6 +124,7 @@ func (k *KafkaProducer) Start() error {
 
 		go func() {
 			defer k.wg.Done()
+			defer k.Stop()
 			for {
 				select {
 				case msg, ok := <-k.Ch:
@@ -133,7 +135,6 @@ func (k *KafkaProducer) Start() error {
 					k.client.Produce(context.Background(), msg, func(r *kgo.Record, err error) {
 						if err != nil {
 							log.Printf("produce error: %s", err.Error())
-							panic("Producing returned an error")
 						}
 					})
 				}
@@ -156,8 +157,8 @@ func (k *KafkaProducer) Stop() error {
 func (k *KafkaProducer) Send(key []byte, value []byte) error {
 	rec := &kgo.Record{
 		Topic:     k.cfg.topic,
-		Key:       []byte(key),
-		Value:     []byte(value),
+		Key:       key,
+		Value:     value,
 		Timestamp: time.Now(),
 	}
 	if !k.cfg.syncProducer {
