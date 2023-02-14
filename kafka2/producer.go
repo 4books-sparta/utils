@@ -108,6 +108,15 @@ func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
 	return k, nil
 }
 
+func (k *KafkaProducer) Ping() {
+	fmt.Println("PING")
+	err := k.client.Ping(context.Background())
+	if err != nil {
+		fmt.Println("Error pinging", err)
+	}
+	fmt.Println("Pong")
+}
+
 func (k *KafkaProducer) Start(cb func(r *kgo.Record, err error)) error {
 	log.Printf("Starting kafka producer for topic '%s' to brokers %+v. Syncronous: %v Partitioner: %s Compression: %s SASL: %s ",
 		k.cfg.topic,
@@ -122,9 +131,6 @@ func (k *KafkaProducer) Start(cb func(r *kgo.Record, err error)) error {
 	if err != nil {
 		log.Printf("error initializing Kafka Producer: %v\n", err)
 		return err
-	}
-	if k.Verbose {
-		utils.PrintVarDump("CFG", k.opts)
 	}
 
 	if !k.cfg.syncProducer {
@@ -166,9 +172,15 @@ func (k *KafkaProducer) Send(key []byte, value []byte) error {
 		Timestamp: time.Now(),
 	}
 	if !k.cfg.syncProducer {
+		if k.Verbose {
+			fmt.Println("Producing async")
+		}
 		k.Ch <- rec
 		return nil
 	} else {
+		if k.Verbose {
+			fmt.Println("Producing sync")
+		}
 		res := k.client.ProduceSync(context.Background(), rec)
 		if err := res.FirstErr(); err != nil {
 			log.Printf("Error producing")
