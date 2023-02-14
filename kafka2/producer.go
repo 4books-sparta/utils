@@ -23,7 +23,7 @@ type KafkaProducer struct {
 	opts    []kgo.Opt
 	Ch      chan *kgo.Record
 	wg      sync.WaitGroup
-	verbose bool
+	Verbose bool
 }
 
 func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
@@ -123,7 +123,7 @@ func (k *KafkaProducer) Start(cb func(r *kgo.Record, err error)) error {
 		log.Printf("error initializing Kafka Producer: %v\n", err)
 		return err
 	}
-	if k.verbose {
+	if k.Verbose {
 		utils.PrintVarDump("CFG", k.opts)
 	}
 
@@ -174,7 +174,7 @@ func (k *KafkaProducer) Send(key []byte, value []byte) error {
 			log.Printf("Error producing")
 			return err
 		}
-		if k.verbose {
+		if k.Verbose {
 			fmt.Println("Produced")
 			utils.PrintVarDump("RES", res)
 		}
