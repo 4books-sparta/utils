@@ -3,6 +3,7 @@ package kafka2
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -12,14 +13,17 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 	"github.com/twmb/franz-go/pkg/sasl/plain"
 	"github.com/twmb/franz-go/pkg/sasl/scram"
+
+	"github.com/4books-sparta/utils"
 )
 
 type KafkaProducer struct {
-	client *kgo.Client
-	cfg    *kafkaConfig
-	opts   []kgo.Opt
-	Ch     chan *kgo.Record
-	wg     sync.WaitGroup
+	client  *kgo.Client
+	cfg     *kafkaConfig
+	opts    []kgo.Opt
+	Ch      chan *kgo.Record
+	wg      sync.WaitGroup
+	verbose bool
 }
 
 func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
@@ -104,19 +108,23 @@ func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
 	return k, nil
 }
 
-func (k *KafkaProducer) Start() error {
-	log.Printf("Starting kafka producer for topic '%s' to brokers %+v. Syncronous: %v Partitioner: %s Compression: %s",
+func (k *KafkaProducer) Start(cb func(r *kgo.Record, err error)) error {
+	log.Printf("Starting kafka producer for topic '%s' to brokers %+v. Syncronous: %v Partitioner: %s Compression: %s SASL: %s ",
 		k.cfg.topic,
 		k.cfg.seeds,
 		k.cfg.syncProducer,
 		k.cfg.partitioner,
 		k.cfg.compression,
+		k.cfg.saslMech,
 	)
 	var err error
 	k.client, err = kgo.NewClient(k.opts...)
 	if err != nil {
 		log.Printf("error initializing Kafka Producer: %v\n", err)
 		return err
+	}
+	if k.verbose {
+		utils.PrintVarDump("CFG", k.opts)
 	}
 
 	if !k.cfg.syncProducer {
@@ -132,11 +140,7 @@ func (k *KafkaProducer) Start() error {
 						log.Printf("Shutting down Kafka Producer\n")
 						return
 					}
-					k.client.Produce(context.Background(), msg, func(r *kgo.Record, err error) {
-						if err != nil {
-							log.Printf("produce error: %s", err.Error())
-						}
-					})
+					k.client.Produce(context.Background(), msg, cb)
 				}
 			}
 		}()
@@ -169,6 +173,10 @@ func (k *KafkaProducer) Send(key []byte, value []byte) error {
 		if err := res.FirstErr(); err != nil {
 			log.Printf("Error producing")
 			return err
+		}
+		if k.verbose {
+			fmt.Println("Produced")
+			utils.PrintVarDump("RES", res)
 		}
 		return nil
 	}
