@@ -60,6 +60,50 @@ func (msc MicroserviceClient) Post(path string, payload interface{}, ret interfa
 	return nil
 }
 
+func (msc MicroserviceClient) Put(path string, payload interface{}, ret interface{}) error {
+	u := msc.getUrl(path)
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequest("PUT", u, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	msc.fillPermanentHeaders(request)
+
+	client := &http.Client{}
+	if msc.TimeOut > 0 {
+		client.Timeout = msc.TimeOut
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = response.Body.Close()
+	}()
+
+	if response.StatusCode != http.StatusOK {
+		return ServiceResponse2Error(response)
+	}
+
+	if ret == nil {
+		//Nothing to parse
+		return nil
+	}
+
+	err = DecodeResponseBody(response, ret)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (msc MicroserviceClient) Patch(path string, payload interface{}, ret interface{}) error {
 	u := msc.getUrl(path)
 	jsonData, err := json.Marshal(payload)
@@ -205,6 +249,7 @@ func (msc MicroserviceClient) getUrl(path string) string {
 
 type HttpMicroClient interface {
 	Post(url string, payload interface{}, ret interface{}) error
+	Put(url string, payload interface{}, ret interface{}) error
 	Patch(url string, payload interface{}, ret interface{}) error
 	Get(url string, ret interface{}, VV url.Values) error
 	Delete(url string, ret interface{}) error
