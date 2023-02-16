@@ -10,11 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/twmb/franz-go/pkg/kgo"
-	"github.com/twmb/franz-go/pkg/sasl/aws"
-	"github.com/twmb/franz-go/pkg/sasl/plain"
-	"github.com/twmb/franz-go/pkg/sasl/scram"
 
 	"github.com/4books-sparta/utils"
 )
@@ -49,46 +45,11 @@ func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
 		kgo.DefaultProduceTopic(k.cfg.topic),
 	}
 
-	if k.cfg.saslEnabled {
-		var nop kgo.Opt
+	if k.cfg.verbose {
+		utils.PrintVarDump("CONFIG ", k.cfg)
+	}
 
-		switch k.cfg.saslMech {
-		case "SCRAM-SHA-256":
-			nop = kgo.SASL(scram.Auth{
-				User: k.cfg.saslUser,
-				Pass: k.cfg.saslPassword,
-			}.AsSha256Mechanism())
-		case "SCRAM-SHA-512":
-			nop = kgo.SASL(scram.Auth{
-				User: k.cfg.saslUser,
-				Pass: k.cfg.saslPassword,
-			}.AsSha512Mechanism())
-		case "PLAIN":
-			nop = kgo.SASL(plain.Auth{
-				User: k.cfg.saslUser,
-				Pass: k.cfg.saslPassword,
-			}.AsMechanism())
-		case "MSK_IAM_PLAIN":
-			sess, err := session.NewSession()
-			if err != nil {
-				die("unable to initialize aws session: %v", err)
-			}
-			nop = kgo.SASL(aws.ManagedStreamingIAM(func(ctx context.Context) (aws.Auth, error) {
-				val, err := sess.Config.Credentials.GetWithContext(ctx)
-				if err != nil {
-					return aws.Auth{}, err
-				}
-				fmt.Println("Entering with AKid", val.AccessKeyID)
-				return aws.Auth{
-					AccessKey:    val.AccessKeyID,
-					SecretKey:    val.SecretAccessKey,
-					SessionToken: val.SessionToken,
-					UserAgent:    "franz-go/creds_test/v1.0.0",
-				}, nil
-			}))
-		default:
-			return nil, errors.New("SASL mechanism not supported")
-		}
+	if nop, err := KafkaAuth(k.cfg); err == nil && nop != nil {
 		kopts = append(kopts, nop)
 	}
 

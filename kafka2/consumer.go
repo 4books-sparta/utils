@@ -11,8 +11,6 @@ import (
 
 	"github.com/twmb/franz-go/pkg/kgo"
 	"github.com/twmb/franz-go/pkg/kmsg"
-	"github.com/twmb/franz-go/pkg/sasl/plain"
-	"github.com/twmb/franz-go/pkg/sasl/scram"
 )
 
 const (
@@ -51,28 +49,7 @@ func KafkaConsumerCreate(opts ...KafkaOption) (*KafkaConsumer, error) {
 		kgo.FetchIsolationLevel(kgo.ReadCommitted()), // only read messages that have been written as part of committed transactions
 	}
 
-	if k.cfg.saslEnabled {
-		var nop kgo.Opt
-
-		switch k.cfg.saslMech {
-		case "SCRAM-SHA-256":
-			nop = kgo.SASL(scram.Auth{
-				User: k.cfg.saslUser,
-				Pass: k.cfg.saslPassword,
-			}.AsSha256Mechanism())
-		case "SCRAM-SHA-512":
-			nop = kgo.SASL(scram.Auth{
-				User: k.cfg.saslUser,
-				Pass: k.cfg.saslPassword,
-			}.AsSha512Mechanism())
-		case "PLAIN":
-			nop = kgo.SASL(plain.Auth{
-				User: k.cfg.saslUser,
-				Pass: k.cfg.saslPassword,
-			}.AsMechanism())
-		default:
-			return nil, errors.New("SASL Mech not supported")
-		}
+	if nop, err := KafkaAuth(k.cfg); err == nil && nop != nil {
 		kopts = append(kopts, nop)
 	}
 
