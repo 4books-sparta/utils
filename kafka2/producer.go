@@ -2,9 +2,11 @@ package kafka2
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strings"
 	"sync"
@@ -51,6 +53,15 @@ func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
 
 	if nop, err := KafkaAuth(k.cfg); err == nil && nop != nil {
 		kopts = append(kopts, nop)
+	}
+
+	//Use TLS?
+	if k.cfg.dialTLS != nil {
+		tlsDialer := &tls.Dialer{NetDialer: &net.Dialer{Timeout: 10 * time.Second}}
+		kopts = append(kopts, kgo.Dialer(tlsDialer.DialContext))
+		if k.cfg.verbose {
+			fmt.Println("TLS dialer set")
+		}
 	}
 
 	switch strings.ToLower(k.cfg.compression) {
