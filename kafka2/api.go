@@ -2,6 +2,7 @@ package kafka2
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 
@@ -47,6 +48,7 @@ type kafkaConfig struct {
 	balancer     string
 	syncProducer bool
 	partitioner  string
+	dialTLS      *tls.Config
 }
 
 func NewDefaultConfig() *kafkaConfig {
@@ -149,6 +151,12 @@ func AtEnd() KafkaOption {
 		cfg.atStart = false
 		cfg.atEnd = true
 		cfg.atTimestamp = -1
+	}
+}
+
+func UseTLS() KafkaOption {
+	return func(cfg *kafkaConfig) {
+		cfg.dialTLS = &tls.Config{}
 	}
 }
 
