@@ -113,6 +113,10 @@ func (k *KafkaProducer) Start(cb func(r *kgo.Record, err error)) error {
 		k.cfg.saslMech,
 	)
 	var err error
+
+	if k.cfg.verbose {
+		fmt.Println("Using TLS? ", k.cfg.dialTLS != nil)
+	}
 	k.client, err = kgo.NewClient(k.opts...)
 	if err != nil {
 		log.Printf("error initializing Kafka Producer: %v\n", err)

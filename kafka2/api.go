@@ -154,9 +154,11 @@ func AtEnd() KafkaOption {
 	}
 }
 
-func UseTLS() KafkaOption {
+func UseTLS(serverName string) KafkaOption {
 	return func(cfg *kafkaConfig) {
-		cfg.dialTLS = &tls.Config{}
+		cfg.dialTLS = &tls.Config{
+			ServerName: serverName,
+		}
 	}
 }
 
