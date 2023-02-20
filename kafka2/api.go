@@ -208,7 +208,7 @@ func KafkaAuth(cfg *kafkaConfig) (kgo.Opt, error) {
 					return aws.Auth{}, err
 				}
 				if cfg.verbose {
-					fmt.Println("Entering with AKid", val.AccessKeyID)
+					fmt.Println("AK => ", val.AccessKeyID)
 				}
 				return aws.Auth{
 					AccessKey:    val.AccessKeyID,

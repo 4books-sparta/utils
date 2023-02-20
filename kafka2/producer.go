@@ -47,10 +47,6 @@ func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
 		kgo.DefaultProduceTopic(k.cfg.topic),
 	}
 
-	if k.cfg.verbose {
-		utils.PrintVarDump("CONFIG ", k.cfg)
-	}
-
 	if nop, err := KafkaAuth(k.cfg); err == nil && nop != nil {
 		kopts = append(kopts, nop)
 	}
