@@ -78,9 +78,9 @@ func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
 	}
 
 	switch strings.ToLower(k.cfg.partitioner) {
-	case "round-robin", "":
+	case PARTITIONER_ROUND_ROBIN, "":
 		kopts = append(kopts, kgo.RecordPartitioner(kgo.RoundRobinPartitioner()))
-	case "sticky":
+	case PARTITIONER_STICKY:
 		kopts = append(kopts, kgo.RecordPartitioner(kgo.StickyPartitioner()))
 	default:
 		e := errors.New("unrecognized partitioner " + k.cfg.partitioner)

@@ -21,11 +21,13 @@ const (
 	// Lz4 		Low 	Lowest 		Fastest 	Highest
 	// Zstd 	Medium 	Moderate 	Moderate 	Medium
 
-	DEFAULT_COMPRESSION    = "snappy"
-	SASL_MECHANISM_IAM     = "MSK_IAM_PLAIN"
-	SASL_MECHANISM_PLAIN   = "PLAIN"
-	SASL_MECHANISM_SHA_512 = "SCRAM-SHA-512"
-	SASL_MECHANISM_SHA_256 = "SCRAM-SHA-256"
+	DEFAULT_COMPRESSION     = "snappy"
+	SASL_MECHANISM_IAM      = "MSK_IAM_PLAIN"
+	SASL_MECHANISM_PLAIN    = "PLAIN"
+	SASL_MECHANISM_SHA_512  = "SCRAM-SHA-512"
+	SASL_MECHANISM_SHA_256  = "SCRAM-SHA-256"
+	PARTITIONER_STICKY      = "sticky"
+	PARTITIONER_ROUND_ROBIN = "round-robin"
 )
 
 type KafkaRecord kgo.Record

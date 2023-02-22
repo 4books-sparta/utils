@@ -20,13 +20,13 @@ func testKafkaProducer(t *testing.T) {
 		SASL("SCRAM-SHA-512", "dbladmin", "Ama4phah6xoeW4aelufeeg7a"),
 		AtStart(),
 		SyncProducer(true),
-		Partitioner("sticky"),
+		Partitioner(PARTITIONER_STICKY),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, c)
 	//assert.Equal(t, tv.out, out.String())
 
-	c.Start()
+	c.Start(nil)
 
 	for t := 0; t < 10; t++ {
 		fmt.Printf("<< %d\n", t)
