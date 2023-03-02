@@ -2,6 +2,10 @@ package kafka_messages
 
 import "time"
 
+const (
+	OnUserActionSyncKPI = "sync_kpis"
+)
+
 type ProgressEvent struct {
 	Locale         string    `json:"l"`
 	Ts             time.Time `json:"t"`
@@ -18,4 +22,10 @@ type ProgressEvent struct {
 type BookProgressEvent struct {
 	ProgressEvent
 	BookId string `json:"b"`
+}
+
+type OnUserActionEvent struct {
+	UserId uint32            `json:"u"`
+	Action string            `json:"a"`
+	Params map[string]string `json:"p"`
 }
