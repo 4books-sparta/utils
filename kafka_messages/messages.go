@@ -28,4 +28,5 @@ type OnUserActionEvent struct {
 	UserId uint32            `json:"u"`
 	Action string            `json:"a"`
 	Params map[string]string `json:"p"`
+	Ts     time.Time         `json:"t"`
 }
