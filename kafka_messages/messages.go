@@ -30,3 +30,11 @@ type OnUserActionEvent struct {
 	Params map[string]string `json:"p"`
 	Ts     time.Time         `json:"t"`
 }
+
+type SkillFeedbackEvent struct {
+	UserId  uint32    `json:"u"`
+	SkillId uint32    `json:"s"`
+	Locale  string    `json:"l"`
+	Action  int8      `json:"a"`
+	Ts      time.Time `json:"t"`
+}
