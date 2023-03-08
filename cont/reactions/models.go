@@ -46,3 +46,7 @@ func (f *SkillFeedback) Essentials() *SkillFeedback {
 	}
 	return &ret
 }
+
+type SkillFollowedResponse struct {
+	Skills []uint32 `json:"skills"`
+}
