@@ -23,7 +23,7 @@ type SkillFeedback struct {
 type ContFavourite struct {
 	UserId    uint32     `json:"user_id,omitempty"  validate:"required" gorm:"primary_key"`
 	Locale    string     `json:"locale,omitempty"  validate:"required" gorm:"primary_key"`
-	CreatedAt *time.Time `json:"-"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
 type SkillFavouriteSaveRequest struct {
