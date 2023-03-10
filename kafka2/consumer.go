@@ -14,6 +14,8 @@ import (
 
 	"github.com/twmb/franz-go/pkg/kgo"
 	"github.com/twmb/franz-go/pkg/kmsg"
+
+	"github.com/4books-sparta/utils"
 )
 
 const (
@@ -197,9 +199,15 @@ func (k *KafkaConsumer) Commit() error {
 	now := time.Now()
 	uncommitted := make(map[string]map[int32]kgo.EpochOffset)
 	uncommitted[k.cfg.topic] = k.uncommittedRecords
+	if k.cfg.verbose {
+		utils.PrintVarDump("Committing", uncommitted)
+	}
 	k.client.CommitOffsetsSync(context.Background(), uncommitted, func(cc *kgo.Client, oo *kmsg.OffsetCommitRequest, rr *kmsg.OffsetCommitResponse, err error) {
 		if err != nil {
 			log.Printf("Error committing offsets: %s", err.Error())
+		}
+		if k.cfg.verbose {
+			utils.PrintVarDump("Commit response", oo.Topics)
 		}
 	})
 	k.current = k.client.MarkedOffsets()
