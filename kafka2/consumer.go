@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	CompressionSnappy = "snappy"
+	CompressionSnappy     = "snappy"
+	ConsumerBalanceSticky = "sticky"
 )
 
 type KafkaConsumer struct {
@@ -98,6 +99,9 @@ func KafkaConsumerCreate(opts ...KafkaOption) (*KafkaConsumer, error) {
 		off = kgo.NoResetOffset()
 		//off = kgo.NewOffset().AfterMilli(1675599465000)
 	}
+	if k.cfg.verbose {
+		fmt.Println("Consumer RESET offset to ", off)
+	}
 	kopts = append(kopts,
 		kgo.ConsumeResetOffset(off),
 	)
@@ -115,7 +119,7 @@ func KafkaConsumerCreate(opts ...KafkaOption) (*KafkaConsumer, error) {
 		balancer = kgo.RangeBalancer()
 	case "roundrobin":
 		balancer = kgo.RoundRobinBalancer()
-	case "sticky":
+	case ConsumerBalanceSticky:
 		balancer = kgo.StickyBalancer()
 	case "cooperative-sticky":
 		balancer = kgo.CooperativeStickyBalancer()
