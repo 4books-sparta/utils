@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/session"
+
 	"github.com/twmb/franz-go/pkg/kgo"
 	"github.com/twmb/franz-go/pkg/sasl/aws"
 	"github.com/twmb/franz-go/pkg/sasl/plain"
@@ -21,36 +22,39 @@ const (
 	// Lz4 		Low 	Lowest 		Fastest 	Highest
 	// Zstd 	Medium 	Moderate 	Moderate 	Medium
 
-	DEFAULT_COMPRESSION     = "snappy"
-	SASL_MECHANISM_IAM      = "MSK_IAM_PLAIN"
-	SASL_MECHANISM_PLAIN    = "PLAIN"
-	SASL_MECHANISM_SHA_512  = "SCRAM-SHA-512"
-	SASL_MECHANISM_SHA_256  = "SCRAM-SHA-256"
-	PARTITIONER_STICKY      = "sticky"
-	PARTITIONER_ROUND_ROBIN = "round-robin"
+	DEFAULT_COMPRESSION            = "snappy"
+	SASL_MECHANISM_IAM             = "MSK_IAM_PLAIN"
+	SASL_MECHANISM_PLAIN           = "PLAIN"
+	SASL_MECHANISM_SHA_512         = "SCRAM-SHA-512"
+	SASL_MECHANISM_SHA_256         = "SCRAM-SHA-256"
+	PARTITIONER_STICKY             = "sticky"
+	PARTITIONER_COOPERATIVE_STICKY = "cooperative-sticky"
+	PARTITIONER_ROUND_ROBIN        = "round-robin"
 )
 
 type KafkaRecord kgo.Record
 
 type kafkaConfig struct {
-	clientID     string
-	seeds        []string
-	group        string
-	topic        string
-	verbose      bool
-	saslEnabled  bool
-	saslMech     string
-	saslUser     string
-	saslPassword string
-	autocommit   bool
-	compression  string
-	atStart      bool
-	atEnd        bool
-	atTimestamp  int32
-	balancer     string
-	syncProducer bool
-	partitioner  string
-	dialTLS      *tls.Config
+	clientID         string
+	seeds            []string
+	group            string
+	topic            string
+	verbose          bool
+	saslEnabled      bool
+	saslMech         string
+	saslUser         string
+	saslPassword     string
+	autocommit       bool
+	commitOnlyMarked bool
+	compression      string
+	atStart          bool
+	atEnd            bool
+	atTimestamp      int32
+	balancer         string
+	syncProducer     bool
+	partitioner      string
+	dialTLS          *tls.Config
+	onRevoked        func(context.Context, *kgo.Client, map[string][]int32)
 }
 
 func NewDefaultConfig() *kafkaConfig {
@@ -69,9 +73,9 @@ func NewDefaultConfig() *kafkaConfig {
 		atStart:      false,
 		atEnd:        true,
 		atTimestamp:  0,
-		balancer:     "sticky",
+		balancer:     PARTITIONER_STICKY,
 		syncProducer: false,
-		partitioner:  "",
+		partitioner:  PARTITIONER_STICKY,
 	}
 }
 
@@ -80,6 +84,12 @@ type KafkaOption func(*kafkaConfig)
 func Verbose(verbose bool) KafkaOption {
 	return func(cfg *kafkaConfig) {
 		cfg.verbose = verbose
+	}
+}
+
+func OnRevoked(onRev func(context.Context, *kgo.Client, map[string][]int32)) KafkaOption {
+	return func(cfg *kafkaConfig) {
+		cfg.onRevoked = onRev
 	}
 }
 
@@ -92,6 +102,12 @@ func Autocommit(autocommit bool) KafkaOption {
 func SyncProducer(val bool) KafkaOption {
 	return func(cfg *kafkaConfig) {
 		cfg.syncProducer = val
+	}
+}
+
+func AutocommitOnlyMarked(val bool) KafkaOption {
+	return func(cfg *kafkaConfig) {
+		cfg.commitOnlyMarked = val
 	}
 }
 

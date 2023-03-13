@@ -19,8 +19,7 @@ import (
 )
 
 const (
-	CompressionSnappy     = "snappy"
-	ConsumerBalanceSticky = "sticky"
+	CompressionSnappy = "snappy"
 )
 
 type KafkaConsumer struct {
@@ -90,6 +89,12 @@ func KafkaConsumerCreate(opts ...KafkaOption) (*KafkaConsumer, error) {
 		)
 	}
 
+	if k.cfg.commitOnlyMarked {
+		kopts = append(kopts,
+			kgo.AutoCommitMarks(),
+		)
+	}
+
 	var off kgo.Offset
 	if k.cfg.atStart {
 		off = kgo.NewOffset().AtStart()
@@ -101,9 +106,7 @@ func KafkaConsumerCreate(opts ...KafkaOption) (*KafkaConsumer, error) {
 		off = kgo.NoResetOffset()
 		//off = kgo.NewOffset().AfterMilli(1675599465000)
 	}
-	if k.cfg.verbose {
-		fmt.Println("Consumer RESET offset to ", off)
-	}
+
 	kopts = append(kopts,
 		kgo.ConsumeResetOffset(off),
 	)
@@ -121,12 +124,16 @@ func KafkaConsumerCreate(opts ...KafkaOption) (*KafkaConsumer, error) {
 		balancer = kgo.RangeBalancer()
 	case "roundrobin":
 		balancer = kgo.RoundRobinBalancer()
-	case ConsumerBalanceSticky:
+	case PARTITIONER_STICKY:
 		balancer = kgo.StickyBalancer()
-	case "cooperative-sticky":
+	case PARTITIONER_COOPERATIVE_STICKY:
 		balancer = kgo.CooperativeStickyBalancer()
 	default:
 		log.Fatalf("unrecognized group balancer: %s", k.cfg.balancer)
+	}
+
+	if k.cfg.onRevoked != nil {
+		kopts = append(kopts, kgo.OnPartitionsRevoked(k.cfg.onRevoked))
 	}
 
 	kopts = append(kopts,
@@ -170,6 +177,10 @@ func (k *KafkaConsumer) MarkOffset(row *KafkaRecord) {
 	k.uncommittedRecords[row.Partition] = kgo.EpochOffset{
 		Offset: row.Offset + 1,
 	}
+}
+
+func (k *KafkaConsumer) MarkRecords(rs ...*kgo.Record) {
+	k.client.MarkCommitRecords(rs...)
 }
 
 func (k *KafkaConsumer) Rollback() {

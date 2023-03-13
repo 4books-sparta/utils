@@ -3,6 +3,7 @@ module github.com/4books-sparta/utils
 go 1.19
 
 require (
+	github.com/aws/aws-sdk-go v1.40.45
 	github.com/getsentry/raven-go v0.2.0
 	github.com/go-kit/kit v0.12.0
 	github.com/go-redis/redis/v8 v8.11.5
@@ -41,6 +42,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
