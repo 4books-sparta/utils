@@ -38,3 +38,16 @@ type SkillFeedbackEvent struct {
 	Action  int8      `json:"a"`
 	Ts      time.Time `json:"t"`
 }
+
+type UserFunnelEvent struct {
+	UserId      uint32            `json:"u" validate:"required"`
+	EventType   string            `json:"e" validate:"required"`
+	Platform    string            `json:"p" validate:"required"`
+	Ts          time.Time         `json:"ts" validate:"required"`
+	UtmSource   string            `json:"utms,omitempty"`
+	UtmMedium   string            `json:"utmm,omitempty"`
+	UtmCampaign string            `json:"utmc,omitempty"`
+	UtmContent  string            `json:"utmct,omitempty"`
+	UtmTerm     string            `json:"utmt,omitempty"`
+	Extras      map[string]string `json:"ext,omitempty"`
+}
