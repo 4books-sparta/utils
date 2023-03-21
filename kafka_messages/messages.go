@@ -42,6 +42,7 @@ type SkillFeedbackEvent struct {
 type UserFunnelEvent struct {
 	UserId      uint32            `json:"u" validate:"required"`
 	EventType   string            `json:"e" validate:"required"`
+	EventID     string            `json:"eid" validate:"required"`
 	Platform    string            `json:"p" validate:"required"`
 	Ts          time.Time         `json:"ts" validate:"required"`
 	UtmSource   string            `json:"utms,omitempty"`
