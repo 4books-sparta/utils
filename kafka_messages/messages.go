@@ -1,6 +1,10 @@
 package kafka_messages
 
-import "time"
+import (
+	"time"
+
+	"github.com/4books-sparta/utils/facebook"
+)
 
 const (
 	OnUserActionSyncKPI = "sync_kpis"
@@ -51,4 +55,6 @@ type UserFunnelEvent struct {
 	UtmContent  string            `json:"utmct,omitempty"`
 	UtmTerm     string            `json:"utmt,omitempty"`
 	Extras      map[string]string `json:"ext,omitempty"`
+	/* Specific */
+	FacebookInfo *facebook.Event `json:"fb,omitempty"`
 }
