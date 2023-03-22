@@ -10,10 +10,11 @@ import (
 )
 
 type MicroserviceClient struct {
-	TimeOut          time.Duration
-	Url              string
-	Port             uint
-	PermanentHeaders map[string]string
+	TimeOut            time.Duration
+	Url                string
+	Port               uint
+	PermanentHeaders   map[string]string
+	PermanentUrlParams url.Values
 }
 
 func (msc MicroserviceClient) Post(path string, payload interface{}, ret interface{}) error {
@@ -26,6 +27,10 @@ func (msc MicroserviceClient) Post(path string, payload interface{}, ret interfa
 	request, err := http.NewRequest("POST", u, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
+	}
+
+	if msc.PermanentUrlParams != nil && len(msc.PermanentUrlParams) > 0 {
+		request.URL.RawQuery = msc.PermanentUrlParams.Encode()
 	}
 
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
@@ -72,6 +77,10 @@ func (msc MicroserviceClient) Put(path string, payload interface{}, ret interfac
 		return err
 	}
 
+	if msc.PermanentUrlParams != nil && len(msc.PermanentUrlParams) > 0 {
+		request.URL.RawQuery = msc.PermanentUrlParams.Encode()
+	}
+
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	msc.fillPermanentHeaders(request)
 
@@ -116,6 +125,10 @@ func (msc MicroserviceClient) Patch(path string, payload interface{}, ret interf
 		return err
 	}
 
+	if msc.PermanentUrlParams != nil && len(msc.PermanentUrlParams) > 0 {
+		request.URL.RawQuery = msc.PermanentUrlParams.Encode()
+	}
+
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	msc.fillPermanentHeaders(request)
 
@@ -153,6 +166,17 @@ func (msc MicroserviceClient) Get(path string, ret interface{}, VV url.Values) e
 	request, err := http.NewRequest("GET", u, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return err
+	}
+
+	if msc.PermanentUrlParams != nil && len(msc.PermanentUrlParams) > 0 {
+		if VV == nil {
+			VV = url.Values{}
+		}
+		for k, vv := range msc.PermanentUrlParams {
+			for _, v := range vv {
+				VV.Add(k, v)
+			}
+		}
 	}
 
 	if VV != nil && len(VV) > 0 {

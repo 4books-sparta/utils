@@ -58,3 +58,6 @@ type UserFunnelEvent struct {
 	/* Specific */
 	FacebookInfo *facebook.Event `json:"fb,omitempty"`
 }
+
+type Client struct {
+}
