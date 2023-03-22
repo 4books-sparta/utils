@@ -137,7 +137,7 @@ type UserData struct {
 	ExternalId      string   `json:"external_id,omitempty"`
 	SubscriptionId  string   `json:"subscription_id,omitempty"`
 	LoginId         int64    `json:"facebook_login_id,omitempty"`
-	LeadId          int64    `json:"lead_id"`
+	LeadId          int64    `json:"lead_id,omitempty"`
 }
 
 func (u *UserData) AddCity(name string) {
