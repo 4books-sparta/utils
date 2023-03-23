@@ -15,6 +15,7 @@ type MicroserviceClient struct {
 	Port               uint
 	PermanentHeaders   map[string]string
 	PermanentUrlParams url.Values
+	GetUrl             func(path string) string
 }
 
 func (msc MicroserviceClient) Post(path string, payload interface{}, ret interface{}) error {
@@ -268,6 +269,9 @@ func (msc MicroserviceClient) Delete(path string, ret interface{}) error {
 }
 
 func (msc MicroserviceClient) getUrl(path string) string {
+	if msc.GetUrl != nil {
+		return msc.GetUrl(path)
+	}
 	return msc.Url + ":" + strconv.Itoa(int(msc.Port)) + path
 }
 
