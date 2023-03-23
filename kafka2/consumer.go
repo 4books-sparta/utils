@@ -230,6 +230,27 @@ func (k *KafkaConsumer) Commit() error {
 	return nil
 }
 
+func (k *KafkaConsumer) ManualCommit(partition int32, offset kgo.EpochOffset) {
+	k.commitLock.Lock()
+	defer k.commitLock.Unlock()
+
+	uncommitted := make(map[string]map[int32]kgo.EpochOffset)
+	uncommitted[k.cfg.topic] = make(map[int32]kgo.EpochOffset)
+	uncommitted[k.cfg.topic][partition] = offset
+
+	if k.cfg.verbose {
+		utils.PrintVarDump("Committing", uncommitted)
+	}
+	k.client.CommitOffsetsSync(context.Background(), uncommitted, func(cc *kgo.Client, oo *kmsg.OffsetCommitRequest, rr *kmsg.OffsetCommitResponse, err error) {
+		if err != nil {
+			log.Printf("Error committing offsets: %s", err.Error())
+		}
+		if k.cfg.verbose {
+			utils.PrintVarDump("Committed response", oo.Topics)
+		}
+	})
+}
+
 func (k *KafkaConsumer) CommitAfter(d time.Duration) error {
 	now := time.Now()
 	if k.lastCommit != nil && k.lastCommit.Add(d).After(now) {
