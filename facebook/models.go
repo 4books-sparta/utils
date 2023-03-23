@@ -2,6 +2,7 @@ package facebook
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"strings"
 )
 
@@ -169,8 +170,7 @@ func Hash(s string) string {
 	s = strings.ToLower(s)
 	h := sha256.New()
 	h.Write([]byte(s))
-	bs := h.Sum(nil)
-	return string(bs)
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 type CustomDataParameter struct {
