@@ -167,3 +167,15 @@ func (e AccessError) Error() string {
 func (e AccessError) Code() int {
 	return 401
 }
+
+const (
+	AuthTokenHeaderName = "x-auth-token"
+)
+
+func ExtractApiToken(req *http.Request) string {
+	return req.Header.Get(AuthTokenHeaderName)
+}
+
+func IsApiTokenCorrect(req *http.Request, shouldBe string) bool {
+	return ExtractApiToken(req) == shouldBe
+}
