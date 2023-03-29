@@ -59,5 +59,21 @@ type UserFunnelEvent struct {
 	FacebookInfo *facebook.Event `json:"fb,omitempty"`
 }
 
-type Client struct {
+type Client struct{}
+
+const (
+	EventBookStarted             = "bs"
+	EventBookCompleted           = "bc"
+	EventUserUpdated             = "uu"
+	EventCategoryFeedbackChanged = "cfc"
+	EventSkillFollowChanged      = "sfc"
+)
+
+type IntercomEvent struct {
+	UserId    uint32    `json:"u"`
+	EventName string    `json:"e"`
+	Locale    string    `json:"l"`
+	ItemType  string    `json:"i"`
+	ItemId    string    `json:"id"`
+	Ts        time.Time `json:"t"`
 }
