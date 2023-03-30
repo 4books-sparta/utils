@@ -73,9 +73,9 @@ const (
 type IntercomEvent struct {
 	UserId    uint32    `json:"u"`
 	EventName string    `json:"e"`
-	Locale    string    `json:"l"`
-	ItemType  string    `json:"i"`
-	ItemId    string    `json:"id"`
-	Platform  string    `json:"p"`
+	Locale    string    `json:"l,omitempty"`
+	ItemType  string    `json:"i,omitempty"`
+	ItemId    string    `json:"id,omitempty"`
+	Platform  string    `json:"p,omitempty"`
 	Ts        time.Time `json:"t"`
 }
