@@ -76,5 +76,6 @@ type IntercomEvent struct {
 	Locale    string    `json:"l"`
 	ItemType  string    `json:"i"`
 	ItemId    string    `json:"id"`
+	Platform  string    `json:"p"`
 	Ts        time.Time `json:"t"`
 }
