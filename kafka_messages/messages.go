@@ -68,6 +68,7 @@ const (
 	EventCategoryFeedbackChanged = "cfc"
 	EventSkillFollowChanged      = "sfc"
 	EventSubscriptionUpdated     = "su"
+	EventFreemiumCreated         = "fs"
 )
 
 type IntercomEvent struct {
@@ -77,5 +78,7 @@ type IntercomEvent struct {
 	ItemType  string    `json:"i,omitempty"`
 	ItemId    string    `json:"id,omitempty"`
 	Platform  string    `json:"p,omitempty"`
+	DateStart time.Time `json:"ds,omitempty"`
+	DateEnd   time.Time `json:"de,omitempty"`
 	Ts        time.Time `json:"t"`
 }
