@@ -46,3 +46,7 @@ type Subscription struct {
 	LastDisabledAt time.Time
 	LastEnabledAt  time.Time
 }
+
+type Response struct {
+	User *User `json:"user"`
+}
