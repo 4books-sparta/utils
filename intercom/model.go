@@ -48,5 +48,6 @@ type Subscription struct {
 }
 
 type Response struct {
-	User *User `json:"user"`
+	User         *User                  `json:"user"`
+	CustomFields map[string]interface{} `json:"custom_fields,omitempty"`
 }

@@ -69,6 +69,7 @@ const (
 	EventSkillFollowChanged      = "sfc"
 	EventSubscriptionUpdated     = "su"
 	EventFreemiumCreated         = "fs"
+	EventEmailChanged            = "ec"
 )
 
 type IntercomEvent struct {
