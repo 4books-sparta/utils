@@ -176,6 +176,7 @@ func (k *KafkaConsumer) MarkOffset(row *KafkaRecord) {
 
 	k.uncommittedRecords[row.Partition] = kgo.EpochOffset{
 		Offset: row.Offset + 1,
+		Epoch:  row.LeaderEpoch,
 	}
 }
 
