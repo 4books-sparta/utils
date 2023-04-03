@@ -179,6 +179,10 @@ func (k *KafkaConsumer) MarkOffset(row *KafkaRecord) {
 	}
 }
 
+func (k *KafkaConsumer) GetMarked() map[int32]kgo.EpochOffset {
+	return k.uncommittedRecords
+}
+
 func (k *KafkaConsumer) MarkRecords(rs ...*kgo.Record) {
 	k.client.MarkCommitRecords(rs...)
 }
@@ -187,8 +191,8 @@ func (k *KafkaConsumer) Rollback() {
 	k.client.CommitOffsetsSync(context.Background(), k.current, nil)
 }
 
-func (k *KafkaConsumer) Commit() error {
-	if k.cfg.autocommit {
+func (k *KafkaConsumer) Commit(forceSync bool) error {
+	if k.cfg.autocommit && !forceSync {
 		return nil
 	}
 
@@ -262,7 +266,7 @@ func (k *KafkaConsumer) CommitAfter(d time.Duration) error {
 		k.lastCommit = &now
 	}()
 
-	return k.Commit()
+	return k.Commit(false)
 }
 
 func (k *KafkaConsumer) consume() {
