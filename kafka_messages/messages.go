@@ -8,6 +8,7 @@ import (
 
 const (
 	OnUserActionSyncKPI = "sync_kpis"
+	PlatformWeb         = "web"
 )
 
 type ProgressEvent struct {
