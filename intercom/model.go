@@ -12,18 +12,18 @@ type ABVariant struct {
 type User struct {
 	Id             string
 	Email          string
-	Verified       bool
-	UserVerified   bool
-	FullName       string
-	CustomFields   map[string]string
-	CreatedAt      time.Time
-	Subscription   *Subscription
-	BooksCompleted uint32
-	BooksStarted   uint32
-	LastStarted    BookActivity
-	LastCompleted  BookActivity
-	Score          *int
-	ABTestVariant  *ABVariant
+	Verified       bool              `json:"verified,omitempty"`
+	UserVerified   bool              `json:"user_verified,omitempty"`
+	FullName       string            `json:"full_name,omitempty"`
+	CustomFields   map[string]string `json:"custom_fields,omitempty"`
+	CreatedAt      *time.Time        `json:"created_at,omitempty"`
+	Subscription   *Subscription     `json:"subscription,omitempty"`
+	BooksCompleted uint32            `json:"books_completed,omitempty"`
+	BooksStarted   uint32            `json:"books_started,omitempty"`
+	LastStarted    *BookActivity     `json:"last_started,omitempty"`
+	LastCompleted  *BookActivity     `json:"last_completed,omitempty"`
+	Score          *int              `json:"score,omitempty"`
+	ABTestVariant  *ABVariant        `json:"ab_test_variant,omitempty"`
 }
 
 type BookActivity struct {

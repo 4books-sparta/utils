@@ -245,6 +245,12 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 }
 
 func (c *Client) SaveUser(u *User) error {
+	if u == nil {
+		return nil
+	}
+	if u.Subscription == nil {
+		u.Subscription = &Subscription{}
+	}
 	custom := map[string]interface{}{
 		"subscription_status": u.Subscription.Status,
 		"provider_name":       u.Subscription.Provider,
@@ -372,6 +378,12 @@ func (c *Client) SaveUserFunnel(u *User, key string, val uint32) error {
 		return c.save(u, custom)
 	}
 	return errors.New(ErrorIntercomEventUnsupported)
+}
+
+func (c *Client) UpdateCustomField(u *User, key string, val uint32) error {
+	custom := make(map[string]interface{})
+	custom[key] = val
+	return c.save(u, custom)
 }
 
 func (c *Client) SaveProgress(u *User) error {
