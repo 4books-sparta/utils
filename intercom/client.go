@@ -203,6 +203,7 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 		existing, err = c.ic.Users.FindByEmail(u.Email)
 		if err == nil {
 			// no error retrieving it so we have a user
+			c.Dump("Matched by email: ", existing)
 			return &existing, nil
 		}
 	}
@@ -229,7 +230,6 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 
 	// there was an unhandled error querying for the user
 	// using its email
-	c.Dump("Matched: ", existing)
 	return nil, err
 }
 
