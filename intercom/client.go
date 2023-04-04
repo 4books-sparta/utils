@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"gopkg.in/intercom/intercom-go.v2"
+
+	"github.com/4books-sparta/utils"
 )
 
 const (
@@ -26,7 +28,8 @@ var customFieldsMap = map[string]string{
 var blacklistFieldsMap = map[string]interface{}{}
 
 type Client struct {
-	ic *intercom.Client
+	ic      *intercom.Client
+	Verbose bool
 }
 
 func New(id, key string) *Client {
@@ -62,12 +65,26 @@ func preFill(u *User, remote *intercom.User) {
 	}
 }
 
+func (c *Client) Log(msg string) {
+	if c.Verbose {
+		fmt.Println(time.Now().UnixMilli(), " => ", msg)
+	}
+}
+
+func (c *Client) Dump(title string, msg interface{}) {
+	if c.Verbose {
+		utils.PrintVarDump(title, msg)
+	}
+}
+
 func (c *Client) GetUserByEmail(e string) (*intercom.User, error) {
+	c.Log("GetUserByEmail: " + e)
 	existing, err := c.ic.Users.FindByEmail(e)
 	if err != nil {
+		c.Log("GetUserByEmail error: " + err.Error())
 		return nil, err
 	}
-
+	c.Log("GetUserByEmail found:" + existing.UserID)
 	return &existing, nil
 }
 
@@ -182,6 +199,7 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 	var err error
 
 	if u.Email != "" {
+		c.Log("matchUser by email" + u.Email)
 		existing, err = c.ic.Users.FindByEmail(u.Email)
 		if err == nil {
 			// no error retrieving it so we have a user
@@ -191,6 +209,7 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 
 	if u.Email == "" || isNotFound(err) {
 		// the user can not be found via email so try with our id
+		c.Log("matchUser by id" + u.Id)
 		existing, err = c.ic.Users.FindByUserID(u.Id)
 		if isNotFound(err) {
 			// the user was not found even with an id  so we can
@@ -203,6 +222,7 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 		}
 
 		// we have found a user using its id
+		c.Dump("Matched: ", existing)
 		return &existing, nil
 	}
 
@@ -245,10 +265,11 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 		return errors.New(errStr)
 	}
 
-	_, err = c.ic.Users.Save(user)
+	res, err := c.ic.Users.Save(user)
 	if err != nil {
 		fmt.Println("Error saving to intercom: ", err)
 	}
+	c.Dump("Saved", res)
 	return err
 }
 
