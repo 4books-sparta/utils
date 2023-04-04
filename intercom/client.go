@@ -188,7 +188,6 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 			return &existing, nil
 		}
 	}
-	// first try to match given an email
 
 	if u.Email == "" || isNotFound(err) {
 		// the user can not be found via email so try with our id
