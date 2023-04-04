@@ -46,8 +46,12 @@ func preFill(u *User, remote *intercom.User) {
 		remote.UserID = u.Id
 	}
 
-	remote.Email = u.Email
-	remote.Name = u.FullName
+	if u.Email != "" {
+		remote.Email = u.Email
+	}
+	if u.FullName != "" {
+		remote.Name = u.FullName
+	}
 	if remote.SignedUpAt == 0 {
 		signedUp := time.Now().Unix()
 		if !u.CreatedAt.IsZero() {
@@ -174,15 +178,20 @@ func (c *Client) SendMessage(msg *intercom.MessageRequest) (intercom.MessageResp
 // Tries to match an internal user to an intercom's one
 // given the convoluted logic used by intercom to do so
 func (c *Client) matchUser(u *User) (*intercom.User, error) {
-	// first try to match given an email
-	existing, err := c.ic.Users.FindByEmail(u.Email)
-	if err == nil {
-		// no error retrieving it so we have a user
-		return &existing, nil
-	}
+	var existing intercom.User
+	var err error
 
-	if isNotFound(err) {
-		// the user was not found via email so try with our id
+	if u.Email != "" {
+		existing, err = c.ic.Users.FindByEmail(u.Email)
+		if err == nil {
+			// no error retrieving it so we have a user
+			return &existing, nil
+		}
+	}
+	// first try to match given an email
+
+	if u.Email == "" || isNotFound(err) {
+		// the user can not be found via email so try with our id
 		existing, err = c.ic.Users.FindByUserID(u.Id)
 		if isNotFound(err) {
 			// the user was not found even with an id  so we can
