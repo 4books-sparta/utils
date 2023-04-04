@@ -222,16 +222,20 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 		}
 
 		// we have found a user using its id
+		fmt.Println("Matched by ID")
 		c.Dump("Matched: ", existing)
 		return &existing, nil
 	}
 
 	// there was an unhandled error querying for the user
 	// using its email
+	c.Dump("Matched: ", existing)
 	return nil, err
 }
 
 func (c *Client) save(u *User, custom map[string]interface{}) error {
+	c.Dump("saving from...", u)
+	c.Dump("custom...", custom)
 	user, err := c.matchUser(u)
 	if err != nil {
 		return err
@@ -265,6 +269,8 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 		return errors.New(errStr)
 	}
 
+	c.Dump("Save after fill", user)
+
 	res, err := c.ic.Users.Save(user)
 	if err != nil {
 		fmt.Println("Error saving to intercom: ", err)
@@ -277,67 +283,70 @@ func (c *Client) SaveUser(u *User) error {
 	if u == nil {
 		return nil
 	}
-	if u.Subscription == nil {
-		u.Subscription = &Subscription{}
-	}
-	custom := map[string]interface{}{
-		"subscription_status": u.Subscription.Status,
-		"provider_name":       u.Subscription.Provider,
-		"plan_name":           u.Subscription.Plan,
-		"email_verified":      u.Verified,
-		"user_verified":       u.UserVerified,
-	}
+	custom := make(map[string]interface{})
+	if u.Subscription != nil && u.Subscription.Provider != "" {
+		custom["subscription_status"] = u.Subscription.Status
+		custom["provider_name"] = u.Subscription.Provider
+		custom["plan_name"] = u.Subscription.Plan
 
-	if len(u.Subscription.Products) > 0 {
-		custom["subscription_products"] = u.Subscription.Products
-	} else {
-		custom["subscription_products"] = "none"
-	}
+		if len(u.Subscription.Products) > 0 {
+			custom["subscription_products"] = u.Subscription.Products
+		} else {
+			custom["subscription_products"] = "none"
+		}
 
-	if len(u.Subscription.Company) > 0 {
-		custom["company"] = u.Subscription.Company
-	}
+		if len(u.Subscription.Company) > 0 {
+			custom["company"] = u.Subscription.Company
+		}
 
-	if u.Subscription.Expiry.IsZero() {
-		custom["subscription_expiry_at"] = ""
-	} else {
-		custom["subscription_expiry_at"] = u.Subscription.Expiry.Unix()
-	}
+		if u.Subscription.Expiry.IsZero() {
+			custom["subscription_expiry_at"] = ""
+		} else {
+			custom["subscription_expiry_at"] = u.Subscription.Expiry.Unix()
+		}
 
-	if u.Subscription.LastDisabledAt.IsZero() {
-		custom["cf_renewal_disabled_at"] = ""
-	} else {
-		custom["cf_renewal_disabled_at"] = u.Subscription.LastDisabledAt.Unix()
-	}
+		if u.Subscription.LastDisabledAt.IsZero() {
+			custom["cf_renewal_disabled_at"] = ""
+		} else {
+			custom["cf_renewal_disabled_at"] = u.Subscription.LastDisabledAt.Unix()
+		}
 
-	if u.Subscription.LastEnabledAt.IsZero() {
-		custom["cf_renewal_reenabled_at"] = ""
-	} else {
-		custom["cf_renewal_reenabled_at"] = u.Subscription.LastEnabledAt.Unix()
-	}
+		if u.Subscription.LastEnabledAt.IsZero() {
+			custom["cf_renewal_reenabled_at"] = ""
+		} else {
+			custom["cf_renewal_reenabled_at"] = u.Subscription.LastEnabledAt.Unix()
+		}
 
-	if u.Subscription.CreatedAt.IsZero() {
-		custom["subscription_start_at"] = ""
-	} else {
-		custom["subscription_start_at"] = u.Subscription.CreatedAt.Unix()
-	}
+		if u.Subscription.CreatedAt.IsZero() {
+			custom["subscription_start_at"] = ""
+		} else {
+			custom["subscription_start_at"] = u.Subscription.CreatedAt.Unix()
+		}
 
-	if u.Subscription.CancelledAt.IsZero() {
-		custom["subscription_cancelled_at"] = ""
-	} else {
-		custom["subscription_cancelled_at"] = u.Subscription.CancelledAt.Unix()
-	}
+		if u.Subscription.CancelledAt.IsZero() {
+			custom["subscription_cancelled_at"] = ""
+		} else {
+			custom["subscription_cancelled_at"] = u.Subscription.CancelledAt.Unix()
+		}
 
-	if u.Subscription.TrialStart.IsZero() {
-		custom["trial_start_at"] = ""
-	} else {
-		custom["trial_start_at"] = u.Subscription.TrialStart.Unix()
-	}
+		if u.Subscription.TrialStart.IsZero() {
+			custom["trial_start_at"] = ""
+		} else {
+			custom["trial_start_at"] = u.Subscription.TrialStart.Unix()
+		}
 
-	if u.Subscription.TrialEnd.IsZero() {
-		custom["trial_end_at"] = ""
-	} else {
-		custom["trial_end_at"] = u.Subscription.TrialEnd.Unix()
+		if u.Subscription.TrialEnd.IsZero() {
+			custom["trial_end_at"] = ""
+		} else {
+			custom["trial_end_at"] = u.Subscription.TrialEnd.Unix()
+		}
+
+	}
+	if u.Verified {
+		custom["email_verified"] = u.Verified
+	}
+	if u.UserVerified {
+		custom["user_verified"] = u.UserVerified
 	}
 
 	if u.ABTestVariant != nil {
