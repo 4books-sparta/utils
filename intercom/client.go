@@ -63,6 +63,7 @@ func preFill(u *User, remote *intercom.User) {
 
 		remote.SignedUpAt = signedUp
 	}
+
 }
 
 func (c *Client) Log(msg string) {
@@ -262,6 +263,13 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 
 	for k, v := range custom {
 		user.CustomAttributes[k] = v
+	}
+
+	//Override attributes come with the request
+	if u.CustomFields != nil && len(u.CustomFields) > 0 {
+		for k, v := range u.CustomFields {
+			user.CustomAttributes[k] = v
+		}
 	}
 
 	if len(user.UserID) <= 0 {
