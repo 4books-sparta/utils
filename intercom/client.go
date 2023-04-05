@@ -438,21 +438,23 @@ func (c *Client) SaveProgress(u *User) error {
 	// update started and completed data
 	custom[BooksCompletedKey] = u.BooksCompleted
 	custom[BooksStartedKey] = u.BooksStarted
-	custom["last_book_started_slug"] = u.LastStarted.Slug
-	custom["last_book_started_title"] = u.LastStarted.Title
-	custom["last_book_completed_slug"] = u.LastCompleted.Slug
-	custom["last_book_completed_title"] = u.LastCompleted.Title
-
-	custom["last_book_started_at"] = u.LastStarted.At.Unix()
-	// reset data
-	if u.LastStarted.At.IsZero() {
-		custom["last_book_started_at"] = ""
-	}
-
-	custom["last_book_completed_at"] = u.LastCompleted.At.Unix()
-	if u.LastCompleted.At.IsZero() {
+	if u.LastStarted != nil {
+		custom["last_book_started_slug"] = u.LastStarted.Slug
+		custom["last_book_started_title"] = u.LastStarted.Title
+		custom["last_book_started_at"] = u.LastStarted.At.Unix()
 		// reset data
-		custom["last_book_completed_at"] = ""
+		if u.LastStarted.At.IsZero() {
+			custom["last_book_started_at"] = ""
+		}
+	}
+	if u.LastCompleted != nil {
+		custom["last_book_completed_slug"] = u.LastCompleted.Slug
+		custom["last_book_completed_title"] = u.LastCompleted.Title
+		custom["last_book_completed_at"] = u.LastCompleted.At.Unix()
+		if u.LastCompleted.At.IsZero() {
+			// reset data
+			custom["last_book_completed_at"] = ""
+		}
 	}
 
 	return c.save(u, custom)
