@@ -9,14 +9,14 @@ type Company struct {
 }
 
 type CompanyUser struct {
-	CompanyId      uint32            `json:"company_id"`
-	UserId         uint32            `json:"user_id"`
-	DateIn         *time.Time        `json:"date_in"`
-	DateOut        *time.Time        `json:"date_out"`
-	SubscriptionId *uint32           `json:"subscription_id"`
-	Subscription   *sub.Subscription `json:"subscription,omitempty"`
-	User           *User             `json:"user,omitempty"`
-	TaskId         *uint32           `json:"task_id"`
+	CompanyId      uint32        `json:"company_id"`
+	UserId         uint32        `json:"user_id"`
+	DateIn         *time.Time    `json:"date_in"`
+	DateOut        *time.Time    `json:"date_out"`
+	SubscriptionId *uint32       `json:"subscription_id"`
+	Subscription   *Subscription `json:"subscription,omitempty"`
+	User           *User         `json:"user,omitempty"`
+	TaskId         *uint32       `json:"task_id"`
 }
 
 type CompanyUserFilter struct {
