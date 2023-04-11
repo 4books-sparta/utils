@@ -81,6 +81,22 @@ func (e InvalidRequestError) Code() int {
 	return http.StatusUnprocessableEntity
 }
 
+type PreconditionFailedError struct {
+	Err error
+}
+
+func (e PreconditionFailedError) Error() string {
+	if e.Err == nil {
+		return "precondition-failed"
+	}
+
+	return e.Err.Error()
+}
+
+func (e PreconditionFailedError) Code() int {
+	return http.StatusPreconditionFailed
+}
+
 type ValidationError struct {
 	Children validator.ValidationErrors
 }
