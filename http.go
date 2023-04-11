@@ -16,6 +16,7 @@ type MicroserviceClient struct {
 	PermanentHeaders   map[string]string
 	PermanentUrlParams url.Values
 	GetUrl             func(path string) string
+	ErrorParser        func(res *http.Response) error
 }
 
 func (msc MicroserviceClient) Post(path string, payload interface{}, ret interface{}) error {
@@ -50,6 +51,9 @@ func (msc MicroserviceClient) Post(path string, payload interface{}, ret interfa
 	}()
 
 	if response.StatusCode != http.StatusOK {
+		if msc.ErrorParser != nil {
+			return msc.ErrorParser(response)
+		}
 		return ServiceResponse2Error(response)
 	}
 
@@ -98,6 +102,9 @@ func (msc MicroserviceClient) Put(path string, payload interface{}, ret interfac
 	}()
 
 	if response.StatusCode != http.StatusOK {
+		if msc.ErrorParser != nil {
+			return msc.ErrorParser(response)
+		}
 		return ServiceResponse2Error(response)
 	}
 
@@ -146,6 +153,9 @@ func (msc MicroserviceClient) Patch(path string, payload interface{}, ret interf
 	}()
 
 	if response.StatusCode != http.StatusOK {
+		if msc.ErrorParser != nil {
+			return msc.ErrorParser(response)
+		}
 		return ServiceResponse2Error(response)
 	}
 
@@ -204,6 +214,9 @@ func (msc MicroserviceClient) Get(path string, ret interface{}, VV url.Values) e
 	}
 
 	if response.StatusCode != http.StatusOK {
+		if msc.ErrorParser != nil {
+			return msc.ErrorParser(response)
+		}
 		return ServiceResponse2Error(response)
 	}
 
@@ -252,6 +265,9 @@ func (msc MicroserviceClient) Delete(path string, ret interface{}) error {
 	}()
 
 	if response.StatusCode != http.StatusOK {
+		if msc.ErrorParser != nil {
+			return msc.ErrorParser(response)
+		}
 		return ServiceResponse2Error(response)
 	}
 
