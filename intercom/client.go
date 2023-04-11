@@ -224,7 +224,6 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 		}
 
 		// we have found a user using its id
-		fmt.Println("Matched by ID")
 		c.Dump("Matched: ", existing)
 		return &existing, nil
 	}
