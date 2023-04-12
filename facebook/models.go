@@ -57,6 +57,15 @@ func (e *Event) Validate() {
 		//Must be converted
 		e.EventName = en
 	}
+	if e.EventName == "Purchase" {
+		//Currency is required
+		if e.CustomData == nil {
+			e.CustomData = &CustomDataParameter{}
+		}
+		if e.CustomData.Currency == "" {
+			e.CustomData.Currency = "EUR"
+		}
+	}
 }
 
 type ExtInfoExpanded struct {
