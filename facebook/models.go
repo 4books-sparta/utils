@@ -38,9 +38,24 @@ var validActionSources = map[string]struct{}{
 	"other":            {},
 }
 
+var eventConversion = map[string]string{
+	"fb_mobile_initiated_checkout":    "InitiateCheckout",
+	"fb_mobile_add_to_wishlist":       "AddToWishlist",
+	"fb_mobile_complete_registration": "CompleteRegistration",
+	"fb_mobile_purchase":              "Purchase",
+	"fb_mobile_search":                "Search",
+	"fb_mobile_content_view":          "ViewContent",
+	"fb_mobile_add_to_cart":           "AddToCart",
+	"fb_mobile_add_payment_info":      "AddPaymentInfo",
+}
+
 func (e *Event) Validate() {
 	if _, ok := validActionSources[e.ActionSource]; !ok {
 		e.ActionSource = "other"
+	}
+	if en, ok := eventConversion[e.EventName]; ok {
+		//Must be converted
+		e.EventName = en
 	}
 }
 
