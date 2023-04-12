@@ -65,6 +65,10 @@ func (e *Event) Validate() {
 		if e.CustomData.Currency == "" {
 			e.CustomData.Currency = "EUR"
 		}
+		if e.CustomData.Value == 0 {
+			//The event will not pass validation. We put a custom event name
+			e.CustomData.Value = 42 //Fake value
+		}
 	}
 }
 
