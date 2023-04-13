@@ -47,7 +47,7 @@ var eventConversion = map[string]string{
 	"fb_mobile_content_view":          "ViewContent",
 	"fb_mobile_add_to_cart":           "AddToCart",
 	"fb_mobile_add_payment_info":      "AddPaymentInfo",
-	"fb_mobile_spent_credits":         "SpentCredit",
+	"fb_mobile_spent_credits":         "SpentCredits",
 }
 
 func (e *Event) Validate() {
