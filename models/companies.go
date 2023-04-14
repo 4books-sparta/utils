@@ -8,6 +8,11 @@ type Company struct {
 	Slug string `json:"slug" validate:"required,slug"`
 }
 
+type Subscription struct {
+	Id     uint32
+	Expiry time.Time
+}
+
 type CompanyUser struct {
 	CompanyId      uint32        `json:"company_id"`
 	UserId         uint32        `json:"user_id"`
