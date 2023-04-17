@@ -55,15 +55,9 @@ func preFill(u *User, remote *intercom.User) {
 	if u.FullName != "" {
 		remote.Name = u.FullName
 	}
-	if remote.SignedUpAt == 0 {
-		signedUp := time.Now().Unix()
-		if u.CreatedAt != nil && !u.CreatedAt.IsZero() {
-			signedUp = u.CreatedAt.Unix()
-		}
-
-		remote.SignedUpAt = signedUp
+	if u.CreatedAt != nil && !u.CreatedAt.IsZero() {
+		remote.SignedUpAt = u.CreatedAt.Unix()
 	}
-
 }
 
 func (c *Client) Log(msg string) {
