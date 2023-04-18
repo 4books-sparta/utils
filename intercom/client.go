@@ -535,8 +535,7 @@ func (c *Client) AttachUserToCompany(iUid, iCid, uid, cid string) (*UserCompany,
 		iCid = company.ID
 	}
 
-	var ret intercom.Company
-	body, err := c.ic.HTTPClient.Post("/contacts/"+iUid+"/companies", struct {
+	_, err := c.ic.HTTPClient.Post("/contacts/"+iUid+"/companies", struct {
 		Id string `json:"id"`
 	}{Id: iCid})
 	if err != nil {
