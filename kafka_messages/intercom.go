@@ -13,6 +13,7 @@ const (
 	EventEmailChanged            = "ec"
 	EventCompanyUpdated          = "cu"
 	EventUser2Company            = "u2c"
+	ObjectTypeCompany            = "cmp"
 )
 
 type IntercomEvent struct {
