@@ -425,6 +425,10 @@ func (c *Client) UpdateCustomField(u *User, key string, val uint32) error {
 	return c.save(u, custom)
 }
 
+func (c *Client) SaveCompany(co intercom.Company) (intercom.Company, error) {
+	return c.ic.Companies.Save(&co)
+}
+
 func (c *Client) SaveProgress(u *User) error {
 	custom := make(map[string]interface{})
 
@@ -483,4 +487,77 @@ func (c *Client) ListUsers(page int) ([]intercom.User, error) {
 func (c *Client) DeleteUser(id string) error {
 	_, err := c.ic.Users.Delete(id)
 	return err
+}
+
+type UserCompany struct {
+	UserId    string
+	CompanyId string
+}
+
+func (c *Client) AttachUserToCompany(iUid, iCid, uid, cid string) (*UserCompany, error) {
+	if iUid == "" {
+		//FindIntercomUser
+		user := &User{
+			Id: uid,
+		}
+		u, err := c.matchUser(user)
+		if err != nil {
+			return nil, err
+		}
+		if u == nil {
+			c.Log("intercom-user-not-found: " + user.Id)
+			return nil, errors.New("intercom-user-not-found")
+		}
+		iUid = u.ID
+	}
+
+	if iCid == "" {
+		company, err := c.ic.Companies.FindByCompanyID(cid)
+		if err != nil {
+			if !isNotFound(err) {
+				c.Log("error-find-by-company-id: " + cid)
+				c.Log(err.Error())
+				return nil, err
+			}
+			//Lets create
+			company, err = c.ic.Companies.Save(&intercom.Company{CompanyID: cid, Name: "Company_" + cid})
+			if err != nil {
+				c.Log("unable-to-create-new-company: " + cid)
+				return nil, errors.New("unable-to-create-new-company")
+			}
+		}
+		if company.ID == "" {
+			if err != nil {
+				c.Log("unable-to-fetch-company: " + cid)
+				return nil, errors.New("unable-to-fetch-company")
+			}
+		}
+		iCid = company.ID
+	}
+
+	var ret intercom.Company
+	body, err := c.ic.HTTPClient.Post("/contacts/"+iUid+"/companies", struct {
+		Id string `json:"id"`
+	}{Id: iCid})
+	if err != nil {
+		c.Log("unable-to-attach-company:" + iUid + ":-:" + iCid)
+		return nil, err
+	}
+	/*
+		if body == nil || len(body) == 0 {
+			c.Log("unable-to-attach-company:" + iUid + ":-:" + iCid)
+			return nil, errors.New("empty-response-attaching-companies")
+		}
+
+		err = json.Unmarshal(body, &ret)
+		if err != nil {
+			c.Log("unable-to-unmarshal:" + iUid + ":-:" + iCid)
+			c.Dump("response", string(body))
+			return nil, err
+		}
+	*/
+	return &UserCompany{
+		UserId:    iUid,
+		CompanyId: iCid,
+	}, nil
 }
