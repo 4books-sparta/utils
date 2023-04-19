@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"gopkg.in/intercom/intercom-go.v2"
@@ -36,12 +35,6 @@ type Client struct {
 func New(id, key string) *Client {
 	return &Client{
 		ic: intercom.NewClient(key, ""),
-	}
-}
-
-func NewClient(id, key string) *Client {
-	return &Client{
-		ic: intercom.NewClient(id, key),
 	}
 }
 
@@ -505,24 +498,20 @@ type UserCompany struct {
 	CompanyId string
 }
 
-func (c *Client) AttachUserToCompany(iUid, iCid, uid, cid string) (*UserCompany, error) {
-
-	if iUid == "" {
-		//FindIntercomUser
-		user := &User{
-			Id: uid,
-		}
-		u, err := c.matchUser(user)
-		if err != nil {
-			return nil, err
-		}
-		if u == nil {
-			c.Log("intercom-user-not-found: " + user.Id)
-			return nil, errors.New("intercom-user-not-found")
-		}
-		c.Log("User Matched::" + u.ID)
-		iUid = u.ID
+func (c *Client) AttachUserToCompany(iCid, uid, cid string) error {
+	//FindIntercomUser
+	user := &User{
+		Id: uid,
 	}
+	u, err := c.matchUser(user)
+	if err != nil {
+		return err
+	}
+	if u == nil {
+		c.Log("intercom-user-not-found: " + user.Id)
+		return errors.New("intercom-user-not-found")
+	}
+	c.Log("User Matched::" + u.ID)
 
 	if iCid == "" {
 		company, err := c.ic.Companies.FindByCompanyID(cid)
@@ -530,49 +519,38 @@ func (c *Client) AttachUserToCompany(iUid, iCid, uid, cid string) (*UserCompany,
 			if !isNotFound(err) {
 				c.Log("error-find-by-company-id: " + cid)
 				c.Log(err.Error())
-				return nil, err
+				return err
 			}
 			//Lets create
 			company, err = c.ic.Companies.Save(&intercom.Company{CompanyID: cid, Name: "Company_" + cid})
 			if err != nil {
 				c.Log("unable-to-create-new-company: " + cid)
-				return nil, errors.New("unable-to-create-new-company")
+				return errors.New("unable-to-create-new-company")
 			}
 		}
 		if company.ID == "" {
 			if err != nil {
 				c.Log("unable-to-fetch-company: " + cid)
-				return nil, errors.New("unable-to-fetch-company")
+				return errors.New("unable-to-fetch-company")
 			}
 		}
 		iCid = company.ID
 	}
 
-	ep := strings.Replace("/contacts/{id}/companies", "{id}", iUid, -1)
-	c.Log("Endpoint: " + ep)
-
-	_, err := c.ic.HTTPClient.Post(ep, struct {
-		Id string `json:"id"`
-	}{Id: iCid})
-	if err != nil {
-		c.Log("unable-to-attach-company:" + iUid + ":-:" + iCid)
-		return nil, err
+	if u.Companies == nil {
+		u.Companies = &intercom.CompanyList{
+			Pages:       intercom.PageParams{},
+			Companies:   make([]intercom.Company, 0),
+			ScrollParam: "",
+		}
 	}
-	/*
-		if body == nil || len(body) == 0 {
-			c.Log("unable-to-attach-company:" + iUid + ":-:" + iCid)
-			return nil, errors.New("empty-response-attaching-companies")
+	for _, co := range u.Companies.Companies {
+		if co.CompanyID == cid || co.ID == iCid {
+			//Already in
+			return nil
 		}
-
-		err = json.Unmarshal(body, &ret)
-		if err != nil {
-			c.Log("unable-to-unmarshal:" + iUid + ":-:" + iCid)
-			c.Dump("response", string(body))
-			return nil, err
-		}
-	*/
-	return &UserCompany{
-		UserId:    iUid,
-		CompanyId: iCid,
-	}, nil
+	}
+	u.Companies.Companies = append(u.Companies.Companies, intercom.Company{CompanyID: cid, ID: iCid})
+	_, err = c.ic.Users.Save(u)
+	return err
 }
