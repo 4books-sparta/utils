@@ -175,7 +175,7 @@ func (k *KafkaConsumer) MarkOffset(row *KafkaRecord) {
 	defer k.commitLock.Unlock()
 
 	k.uncommittedRecords[row.Partition] = kgo.EpochOffset{
-		Offset: row.Offset + 1,
+		Offset: row.Offset, //Was +1
 		Epoch:  row.LeaderEpoch,
 	}
 }
