@@ -99,3 +99,12 @@ func DecodeToInterface(r io.Reader, ret interface{}) ([]byte, error) {
 
 	return b, json.Unmarshal(b, ret)
 }
+
+func ConvertInterface(in interface{}, out interface{}) error {
+	jsb, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(jsb, out)
+}
