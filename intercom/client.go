@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"gopkg.in/intercom/intercom-go.v2"
@@ -58,6 +59,10 @@ func preFill(u *User, remote *intercom.User) {
 	if u.CreatedAt != nil && !u.CreatedAt.IsZero() {
 		remote.SignedUpAt = u.CreatedAt.Unix()
 	}
+}
+
+func (c *Client) TraceHTTP(val bool) {
+	c.ic.Option(intercom.TraceHTTP(val))
 }
 
 func (c *Client) Log(msg string) {
@@ -495,6 +500,7 @@ type UserCompany struct {
 }
 
 func (c *Client) AttachUserToCompany(iUid, iCid, uid, cid string) (*UserCompany, error) {
+
 	if iUid == "" {
 		//FindIntercomUser
 		user := &User{
@@ -508,6 +514,7 @@ func (c *Client) AttachUserToCompany(iUid, iCid, uid, cid string) (*UserCompany,
 			c.Log("intercom-user-not-found: " + user.Id)
 			return nil, errors.New("intercom-user-not-found")
 		}
+		c.Log("User Matched::" + u.ID)
 		iUid = u.ID
 	}
 
@@ -535,7 +542,10 @@ func (c *Client) AttachUserToCompany(iUid, iCid, uid, cid string) (*UserCompany,
 		iCid = company.ID
 	}
 
-	_, err := c.ic.HTTPClient.Post("/contacts/"+iUid+"/companies", struct {
+	ep := strings.Replace("/contacts/{id}/companies", "{id}", iUid, -1)
+	c.Log("Endpoint: " + ep)
+
+	_, err := c.ic.HTTPClient.Post(ep, struct {
 		Id string `json:"id"`
 	}{Id: iCid})
 	if err != nil {
