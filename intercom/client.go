@@ -39,6 +39,12 @@ func New(id, key string) *Client {
 	}
 }
 
+func NewClient(id, key string) *Client {
+	return &Client{
+		ic: intercom.NewClient(id, key),
+	}
+}
+
 func isNotFound(err error) bool {
 	herr, ok := err.(intercom.IntercomError)
 	return ok && herr.GetCode() == "not_found"
