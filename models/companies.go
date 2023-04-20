@@ -15,6 +15,7 @@ type Subscription struct {
 
 type CompanyUser struct {
 	CompanyId      uint32        `json:"company_id"`
+	TeamId         uint32        `json:"team_id"`
 	UserId         uint32        `json:"user_id"`
 	DateIn         *time.Time    `json:"date_in"`
 	DateOut        *time.Time    `json:"date_out"`
