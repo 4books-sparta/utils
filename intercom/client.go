@@ -433,6 +433,10 @@ func (c *Client) SaveCompany(co intercom.Company) (intercom.Company, error) {
 	return c.ic.Companies.Save(&co)
 }
 
+func (c *Client) GetCompanyByExternalId(id string) (intercom.Company, error) {
+	return c.ic.Companies.FindByCompanyID(id)
+}
+
 func (c *Client) SaveProgress(u *User) error {
 	custom := make(map[string]interface{})
 
