@@ -1,11 +1,20 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Company struct {
-	Id   uint32 `json:"id"`
-	Name string `json:"name" validate:"required"`
-	Slug string `json:"slug" validate:"required,slug"`
+	Id                  uint32                         `json:"id"`
+	Name                string                         `json:"name" validate:"required"`
+	Slug                string                         `json:"slug" validate:"required,slug"`
+	CompanyTranslations map[string]*CompanyTranslation `json:"translations" gorm:"-"`
+}
+
+type CompanyTranslation struct {
+	Logo      string `json:"logo"`
+	Claim     string `json:"claim"`
+	CompanyId uint32 `json:"company_id"`
 }
 
 type CompanyTeam struct {
