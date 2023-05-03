@@ -7,12 +7,13 @@ import (
 type Company struct {
 	Id                  uint32                         `json:"id"`
 	Name                string                         `json:"name" validate:"required"`
+	Logo                string                         `json:"logo,omitempty"`
 	Slug                string                         `json:"slug" validate:"required,slug"`
 	CompanyTranslations map[string]*CompanyTranslation `json:"translations" gorm:"-"`
 }
 
 type CompanyTranslation struct {
-	Logo      string `json:"logo"`
+	Logo      string `json:"logo,omitempty"`
 	Claim     string `json:"claim"`
 	CompanyId uint32 `json:"company_id"`
 }
