@@ -276,11 +276,14 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 
 	c.Dump("Save after fill", user)
 
+	u.RawUser = user
+
 	res, err := c.ic.Users.Save(user)
 	if err != nil {
 		fmt.Println("Error saving to intercom: ", err)
 	}
 	c.Dump("Saved", res)
+
 	return err
 }
 

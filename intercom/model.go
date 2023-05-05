@@ -2,6 +2,8 @@ package intercom
 
 import (
 	"time"
+
+	"gopkg.in/intercom/intercom-go.v2"
 )
 
 type ABVariant struct {
@@ -24,6 +26,8 @@ type User struct {
 	LastCompleted  *BookActivity     `json:"last_completed,omitempty"`
 	Score          *int              `json:"score,omitempty"`
 	ABTestVariant  *ABVariant        `json:"ab_test_variant,omitempty"`
+
+	RawUser *intercom.User `json:"raw,omitempty"`
 }
 
 type BookActivity struct {
