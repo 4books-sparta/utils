@@ -60,26 +60,33 @@ func (cl *BigqueryClient) Exec(ctx context.Context, sql string) (*bigquery.RowIt
 	return cl.client.Query(sql).Read(ctx)
 }
 
+func (cl *BigqueryClient) Log(title string, args []string) {
+	if !cl.Verbose {
+		return
+	}
+	fmt.Println(title, "::")
+	fmt.Print(args)
+}
+
 func (cl *BigqueryClient) SaveRecords(table string, payload []*BigQuerySavePayload) error {
 	if cl.client == nil {
+		cl.Log("SaveRecords", []string{"bigquery-client-nil"})
 		return errors.New("bigquery-client-nil")
 	}
 
 	dataset := cl.config.Dataset
-
+	cl.Log("SaveRecords", []string{dataset, table})
 	ins := cl.client.Dataset(dataset).Table(table).Inserter()
 	err := ins.Put(context.Background(), payload)
 	if err != nil {
 		if multiError, ok := err.(bigquery.PutMultiError); ok {
 			for _, err1 := range multiError {
 				for _, err2 := range err1.Errors {
-					if cl.Verbose {
-						fmt.Println(BigQueryErrPrefix, err2)
-					}
+					cl.Log("bigquery.PutMultiError", []string{err2.Error()})
 				}
 			}
 		} else {
-			fmt.Println(BigQueryErrPrefix, err)
+			cl.Log("bigquery.Error", []string{err.Error()})
 		}
 	}
 	return err
