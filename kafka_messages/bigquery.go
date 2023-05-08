@@ -23,7 +23,7 @@ type BigqueryUserLocation struct {
 type BigqueryMsg struct {
 	Type string
 	Data interface{}
-	Log  func(string)
+	Log  func(string) `json:"-"`
 }
 
 func (msg *BigqueryMsg) Validate() error {
