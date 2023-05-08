@@ -104,3 +104,7 @@ func (cl *BigqueryClient) GetPayload(ev interface{}) (*BigQuerySavePayload, erro
 
 	return &payload, nil
 }
+
+func (cl *BigqueryClient) GetCompleteTableName(tab string) string {
+	return fmt.Sprintf("%s.%s.%s", cl.config.ProjectId, cl.config.Dataset, tab)
+}
