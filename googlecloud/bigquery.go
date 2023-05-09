@@ -65,7 +65,9 @@ func (cl *BigqueryClient) Log(title string, args []string) {
 		return
 	}
 	fmt.Println(title, "::")
-	fmt.Print(args)
+	for _, str := range args {
+		fmt.Println("- ", str)
+	}
 }
 
 func (cl *BigqueryClient) SaveRecords(table string, payload []*BigQuerySavePayload) error {
