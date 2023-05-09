@@ -31,9 +31,19 @@ type ContRequest struct {
 	ContType      string   `json:"cont_type"`
 	PublishStates []string `json:"publish_states"`
 	LocalizedPagedUserSearchRequest
-	IntId    int    `json:"id"`
-	StringId string `json:"s_id"`
-	Slug     string `json:"slug" validate:"slug"`
+	IntId    int         `json:"id"`
+	StringId string      `json:"s_id"`
+	Slug     string      `json:"slug" validate:"slug"`
+	Filter   *ContFilter `json:"filter,omitempty"`
+}
+
+type ContFilter struct {
+	B2B *B2BFilter `json:"b2b,omitempty"`
+}
+
+type B2BFilter struct {
+	CompanyId uint32 `json:"company_id"`
+	TeamId    uint32 `json:"team_id"`
 }
 
 type SlugRequest struct {
