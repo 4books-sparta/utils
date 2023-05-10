@@ -18,3 +18,10 @@ const (
 	TypeSkill     = "skill"
 	TypeCategory  = "category"
 )
+
+type CompanyFeaturedSkill struct {
+	CompanyId uint32 `json:"company_id"`
+	TeamId    uint32 `json:"team_id"`
+	SkillId   uint32 `json:"skill_id"`
+	Ord       int    `json:"ord"`
+}
