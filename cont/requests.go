@@ -25,3 +25,15 @@ type CompanyFeaturedSkill struct {
 	SkillId   uint32 `json:"skill_id"`
 	Ord       int    `json:"ord"`
 }
+
+type CompanyFeaturedSkillRequest struct {
+	Skill *CompanyFeaturedSkill `json:"skill"`
+}
+
+type CompanyFeaturedSkillResponse struct {
+	Skill *CompanyFeaturedSkill `json:"skill"`
+}
+
+type CompanyFeaturedSkillsResponse struct {
+	Skills []*CompanyFeaturedSkill `json:"skills"`
+}
