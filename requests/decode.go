@@ -29,3 +29,17 @@ func DecodeRefreshableRequest(_ context.Context, req *http.Request) (interface{}
 	_, ok := req.URL.Query()["refresh"]
 	return ok, nil
 }
+
+func CanBeDecoded(req *http.Request) bool {
+	if req.Method == http.MethodPatch {
+		return true
+	}
+	if req.Method == http.MethodPost {
+		return true
+	}
+	if req.Method == http.MethodPut {
+		return true
+	}
+
+	return false
+}
