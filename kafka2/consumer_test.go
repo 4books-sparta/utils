@@ -38,6 +38,6 @@ func testKafkaConsumer(t *testing.T) {
 
 	_ = c.Start()
 	time.Sleep(5 * time.Second)
-	_ = c.Commit()
+	_ = c.Commit(false)
 	_ = c.Stop()
 }
