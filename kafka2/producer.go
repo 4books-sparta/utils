@@ -3,15 +3,19 @@ package kafka2
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/twmb/franz-go/pkg/kgo"
 
 	"github.com/4books-sparta/utils"
@@ -189,4 +193,57 @@ func (k *KafkaProducer) Send(key []byte, value []byte) error {
 		}
 		return nil
 	}
+}
+
+func StartNewProducer(brokers []string, topic string, authType string) *KafkaProducer {
+	id := strconv.Itoa(rand.Intn(1000000))
+	cid, err := uuid.NewUUID()
+	if err == nil {
+		id = cid.String()
+	}
+
+	options := make([]KafkaOption, 0)
+	options = append(options, Verbose(false))
+	options = append(options, Compression(CompressionSnappy))
+	options = append(options, Seeds(brokers...))
+	options = append(options, Topic(topic))
+	options = append(options, SyncProducer(true))
+	options = append(options, ClientID(id))
+	options = append(options, Partitioner(PARTITIONER_STICKY))
+
+	switch authType {
+	case "MSK_IAM":
+		options = append(options, SASL("MSK_IAM_PLAIN", "-", "-"))
+		options = append(options, UseTLS(""))
+	}
+
+	c, err := KafkaProducerCreate(options...)
+	if err != nil {
+		fmt.Println(err)
+		panic("cant-create-kafka-producer")
+	}
+	err = c.Start(nil)
+	if err != nil {
+		fmt.Println(err)
+		panic("cant-start-kafka-producer")
+	}
+	return c
+
+}
+
+func (k *KafkaProducer) SendMsg(msg interface{}, key string) error {
+	strJSON, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println("producer-send-marshal-error", err)
+		return err
+	}
+	go func() {
+		err := k.Send([]byte(key), strJSON)
+		if err != nil {
+			fmt.Println("producer-send-error", err)
+			return
+		}
+	}()
+
+	return nil
 }
