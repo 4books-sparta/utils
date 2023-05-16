@@ -8,9 +8,16 @@ import (
 )
 
 const (
-	ErrorUnknownType            = "unknown-type"
-	ErrorWrongDataInterfaceType = "wrong-data-signature"
-	BigqueryTypeUserLocation    = "ul"
+	ErrorUnknownType                     = "unknown-type"
+	ErrorWrongDataInterfaceType          = "wrong-data-signature"
+	BigqueryTypeUserLocation             = "ul"
+	BigqueryTypeStatPublishedBooks       = "pb"
+	BigqueryTypeStatPublishedArticles    = "pa"
+	BigqueryTypeStatSignups              = "usu"
+	BigqueryTypeStatCreatedSubscriptions = "t_sub"
+	BigqueryTypeStatActiveSubscriptions  = "a_sub"
+	BigqueryTypeStatActiveTrials         = "a_try"
+	BigqueryTypeStatExpiresSub           = "e_sub"
 )
 
 type BigqueryUserLocation struct {
