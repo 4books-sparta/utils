@@ -37,3 +37,7 @@ type CompanyFeaturedSkillResponse struct {
 type CompanyFeaturedSkillsResponse struct {
 	Skills []*CompanyFeaturedSkill `json:"skills"`
 }
+
+func GetSupportedLanguages() []string {
+	return []string{"it", "en", "es"}
+}
