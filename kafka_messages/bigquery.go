@@ -18,6 +18,8 @@ const (
 	BigqueryTypeStatActiveSubscriptions  = "a_sub"
 	BigqueryTypeStatActiveTrials         = "a_try"
 	BigqueryTypeStatExpiresSub           = "e_sub"
+	BigqueryTypePublishedSkills          = "psk"
+	BigqueryTypePublishedMagazinePosts   = "pmp"
 )
 
 type BigqueryUserLocation struct {

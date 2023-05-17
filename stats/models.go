@@ -35,7 +35,7 @@ func (ts *TimeSerie) FillMonth() uint32 {
 	return ts.Month
 }
 
-type PublishedBooks struct {
+type LocalizedTimeSerie struct {
 	TimeSerie
-	Locale string `json:"locale"`
+	Locale string `json:"lang"`
 }
