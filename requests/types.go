@@ -49,3 +49,8 @@ type B2BFilter struct {
 type SlugRequest struct {
 	Slug string `json:"slug"`
 }
+
+type ContWithTeamRequest struct {
+	ContRequest
+	TeamId uint32 `validate:"required"`
+}
