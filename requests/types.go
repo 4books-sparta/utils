@@ -52,5 +52,5 @@ type SlugRequest struct {
 
 type ContWithTeamRequest struct {
 	ContRequest
-	TeamId uint32 `validate:"required"`
+	TeamId uint32
 }
