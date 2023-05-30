@@ -8,6 +8,7 @@ DONE=${GREEN}OK${NOCOLOR}
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 LAST_UTILS_TAG=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/4books-sparta/utils '*.*.*' | tail --lines=1 | cut --delimiter='/' --fields=3)
+# LAST_UTILS_TAG=v0.7.21
 
 source .env
 
