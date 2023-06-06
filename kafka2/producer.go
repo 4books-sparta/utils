@@ -86,6 +86,9 @@ func KafkaProducerCreate(opts ...KafkaOption) (*KafkaProducer, error) {
 		kopts = append(kopts, kgo.RecordPartitioner(kgo.RoundRobinPartitioner()))
 	case PARTITIONER_STICKY:
 		kopts = append(kopts, kgo.RecordPartitioner(kgo.StickyPartitioner()))
+	case PARTITIONER_KEY_STICKY:
+		//TODO implement custom hashers
+		kopts = append(kopts, kgo.RecordPartitioner(kgo.StickyKeyPartitioner(nil)))
 	default:
 		e := errors.New("unrecognized partitioner " + k.cfg.partitioner)
 		log.Printf("Error: %s", e.Error())

@@ -28,6 +28,7 @@ const (
 	SASL_MECHANISM_SHA_512         = "SCRAM-SHA-512"
 	SASL_MECHANISM_SHA_256         = "SCRAM-SHA-256"
 	PARTITIONER_STICKY             = "sticky"
+	PARTITIONER_KEY_STICKY         = "sticky-key"
 	PARTITIONER_COOPERATIVE_STICKY = "cooperative-sticky"
 	PARTITIONER_ROUND_ROBIN        = "round-robin"
 )
