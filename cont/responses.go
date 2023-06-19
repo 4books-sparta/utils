@@ -18,3 +18,8 @@ type SitemapRows map[string][]*SitemapRow
 type SitemapRowTranslation struct {
 	Slug string `json:"slug"`
 }
+
+type ResourceStats struct {
+	Resources int
+	Users     int
+}

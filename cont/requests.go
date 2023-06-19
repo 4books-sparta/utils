@@ -41,3 +41,7 @@ type CompanyFeaturedSkillsResponse struct {
 func GetSupportedLanguages() []string {
 	return []string{"it", "en", "es"}
 }
+
+type PerUsersRequests struct {
+	Ids []uint32
+}
