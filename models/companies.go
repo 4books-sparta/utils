@@ -46,6 +46,7 @@ type CompanyUserFilter struct {
 	Offset    uint32 `json:"offset"`
 	Email     string `json:"email"`
 	CompanyId uint32 `json:"company_id"`
+	TeamId    uint32 `json:"team_id"`
 }
 
 type WebRedirect struct {
