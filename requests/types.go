@@ -32,6 +32,7 @@ type ContRequest struct {
 	PublishStates []string `json:"publish_states"`
 	LocalizedPagedUserSearchRequest
 	IntId    int         `json:"id"`
+	IntIds   []int       `json:"ids,omitempty"`
 	StringId string      `json:"s_id"`
 	Slug     string      `json:"slug" validate:"slug"`
 	Filter   *ContFilter `json:"filter,omitempty"`
