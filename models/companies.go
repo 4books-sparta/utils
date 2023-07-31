@@ -32,6 +32,7 @@ type Subscription struct {
 type Credential struct {
 	UserId         uint32     `json:"user_id"`
 	AuthProviderId uint8      `json:"auth_provider_id"`
+	ExternalId     string     `json:"-"`
 	CreatedAt      *time.Time `json:"created_at"`
 }
 
