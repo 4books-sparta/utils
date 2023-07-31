@@ -29,6 +29,12 @@ type Subscription struct {
 	Expiry time.Time
 }
 
+type Credential struct {
+	UserId         uint32     `json:"user_id"`
+	AuthProviderId uint8      `json:"auth_provider_id"`
+	CreatedAt      *time.Time `json:"created_at"`
+}
+
 type CompanyUser struct {
 	CompanyId      uint32        `json:"company_id"`
 	TeamId         uint32        `json:"team_id"`
@@ -38,6 +44,7 @@ type CompanyUser struct {
 	SubscriptionId *uint32       `json:"subscription_id"`
 	Subscription   *Subscription `json:"subscription,omitempty"`
 	User           *User         `json:"user,omitempty"`
+	Credential     *Credential   `json:"credential,omitempty"`
 	TaskId         *uint32       `json:"task_id"`
 }
 
