@@ -45,7 +45,6 @@ type CompanyUser struct {
 	SubscriptionId *uint32       `json:"subscription_id"`
 	Subscription   *Subscription `json:"subscription,omitempty"`
 	User           *User         `json:"user,omitempty"`
-	Credential     *Credential   `json:"credential,omitempty"`
 	TaskId         *uint32       `json:"task_id"`
 }
 
