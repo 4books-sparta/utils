@@ -14,6 +14,7 @@ const (
 	BigqueryTypeStatPublishedBooks       = "pb"
 	BigqueryTypeStatPublishedArticles    = "pa"
 	BigqueryTypeStatSignups              = "usu"
+	BigqueryTypeSearchesLog              = "slo"
 	BigqueryTypeStatSubscriptions        = "u_subs"
 	BigqueryTypeStatCreatedSubscriptions = "t_sub"
 	BigqueryTypeStatActiveSubscriptions  = "a_sub"
@@ -56,6 +57,14 @@ type BigqueryUserLocation struct {
 	City      string     `json:"city,omitempty"`
 }
 
+type BigquerySearchesLog struct {
+	Ts      int    `json:"ts"`
+	Type    string `json:"type"`
+	Qs      string `json:"qs"`
+	Num     int    `json:"num"`
+	Results string `json:"results"`
+}
+
 type BigqueryMsg struct {
 	Type string
 	Data interface{}
@@ -86,6 +95,15 @@ func (msg *BigqueryMsg) Validate() error {
 		return validate.Struct(msg.Data)
 	case BigqueryTypeStatSubscriptions:
 		if _, ok := msg.Data.(BigqueryDailySubs); !ok {
+			if msg.Log != nil {
+				msg.Log(ErrorWrongDataInterfaceType)
+			}
+			return errors.New(ErrorWrongDataInterfaceType)
+		}
+		//Validate struct
+		return validate.Struct(msg.Data)
+	case BigqueryTypeSearchesLog:
+		if _, ok := msg.Data.(BigquerySearchesLog); !ok {
 			if msg.Log != nil {
 				msg.Log(ErrorWrongDataInterfaceType)
 			}
