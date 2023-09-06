@@ -39,7 +39,8 @@ type ContRequest struct {
 }
 
 type ContFilter struct {
-	B2B *B2BFilter `json:"b2b,omitempty"`
+	B2B  *B2BFilter `json:"b2b,omitempty"`
+	Text string     `json:"text,omitempty"`
 }
 
 type B2BFilter struct {
