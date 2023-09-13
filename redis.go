@@ -46,6 +46,7 @@ type RedisConfig struct {
 	Port      string
 	Password  string
 	Database  int
+	Timeout   time.Duration
 }
 
 func GetRedisConfig() *RedisConfig {
@@ -57,6 +58,7 @@ func GetRedisConfig() *RedisConfig {
 		Password:  viper.GetString("redis_auth_token"),
 		IsCluster: viper.GetString("redis_cluster") == "yes",
 		Database:  0,
+		Timeout:   500 * time.Millisecond,
 	}
 }
 
@@ -258,9 +260,9 @@ func NewRedisClient(config *RedisConfig) (redis.UniversalClient, error) {
 		return nil, errors.New("no-redis")
 	}
 	defOptions := redis.UniversalOptions{
-		DialTimeout:  1 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 2 * time.Second,
+		DialTimeout:  1 * config.Timeout,
+		ReadTimeout:  1 * config.Timeout,
+		WriteTimeout: 2 * config.Timeout,
 	}
 	if !config.IsCluster {
 		fmt.Println("- REDIS STANDALONE")
