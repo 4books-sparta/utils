@@ -1,4 +1,4 @@
-package gpc_pubsub
+package gc_pubsub
 
 import (
 	"context"
