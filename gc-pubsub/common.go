@@ -69,6 +69,10 @@ func (c *Client) GetActiveTopic(topic string) *pubsub.Topic {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	if c.activeTopics == nil {
+		c.activeTopics = make(map[string]*pubsub.Topic)
+	}
+
 	if _, ok := c.activeTopics[topic]; !ok {
 		c.activeTopics[topic] = c.client.Topic(topic)
 	}
@@ -165,10 +169,17 @@ func (c *Client) ListTopics(ctx context.Context) ([]*pubsub.Topic, error) {
 	return topics, nil
 }
 
-func (c *Client) Publish(ctx context.Context, t *pubsub.Topic, msg string) error {
-	result := t.Publish(ctx, &pubsub.Message{
+func (c *Client) Publish(ctx context.Context, t *pubsub.Topic, msg string, key string) error {
+	message := pubsub.Message{
 		Data: []byte(msg),
-	})
+	}
+	if key != "" {
+		message.OrderingKey = key
+		t.EnableMessageOrdering = true
+	} else {
+		t.EnableMessageOrdering = true
+	}
+	result := t.Publish(ctx, &message)
 	c.SetActiveTopic(t)
 	// Block until the result is returned and a server-generated
 	// ID is returned for the published message.
@@ -182,9 +193,9 @@ func (c *Client) Publish(ctx context.Context, t *pubsub.Topic, msg string) error
 	return nil
 }
 
-func (c *Client) PublishToTopicID(ctx context.Context, topic, msg string) error {
+func (c *Client) PublishToTopicID(ctx context.Context, topic, msg, key string) error {
 	t := c.GetActiveTopic(topic)
-	return c.Publish(ctx, t, msg)
+	return c.Publish(ctx, t, msg, key)
 }
 
 func (c *Client) Subscribe(name string) *pubsub.Subscription {
