@@ -65,6 +65,17 @@ func (c *Client) GetActiveTopics() map[string]*pubsub.Topic {
 	return c.activeTopics
 }
 
+func (c *Client) GetActiveTopic(topic string) *pubsub.Topic {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if _, ok := c.activeTopics[topic]; !ok {
+		c.activeTopics[topic] = c.client.Topic(topic)
+	}
+
+	return c.activeTopics[topic]
+}
+
 func (c *Client) Log(level, str string) {
 	if !c.debug {
 		return
@@ -169,6 +180,11 @@ func (c *Client) Publish(ctx context.Context, t *pubsub.Topic, msg string) error
 	c.Log(InfoLevel, fmt.Sprintf("Published a message; msg ID: %v", id))
 
 	return nil
+}
+
+func (c *Client) PublishToTopicID(ctx context.Context, topic, msg string) error {
+	t := c.GetActiveTopic(topic)
+	return c.Publish(ctx, t, msg)
 }
 
 func (c *Client) Subscribe(name string) *pubsub.Subscription {
