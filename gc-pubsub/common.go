@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/iterator"
@@ -36,26 +35,28 @@ func NewClient(ctx context.Context, cfg ClientConfig) (*Client, error) {
 	}, nil
 }
 
+func (c *Client) Log(level, str string) {
+	if !c.debug {
+		return
+	}
+
+	fmt.Printf("%s: %s\n", level, str)
+}
+
+func (c *Client) ErrorLog(str string, err error) {
+	if !c.debug {
+		return
+	}
+
+	fmt.Printf("%s: %s =>  %v\n", ErrorLevel, str, err)
+}
+
 func (c *Client) StartDebug() {
 	c.debug = true
 }
 
 func (c *Client) StopDebug() {
 	c.debug = false
-}
-
-func (c *Client) CreateTopicIfNotExists(ctx context.Context, topic string) (*pubsub.Topic, error) {
-	t := c.client.Topic(topic)
-	ok, err := t.Exists(ctx)
-	if err != nil {
-		c.ErrorLog("Failed to check existence of the topic", err)
-		return nil, err
-	}
-	if ok {
-		return t, nil
-	}
-
-	return c.CreateTopic(ctx, topic)
 }
 
 func (c *Client) CreateTopic(ctx context.Context, topic string) (*pubsub.Topic, error) {
@@ -68,11 +69,8 @@ func (c *Client) CreateTopic(ctx context.Context, topic string) (*pubsub.Topic, 
 	return t, nil
 }
 
-func (c *Client) CreateSubscription(ctx context.Context, name string, topic *pubsub.Topic) error {
-	sub, err := c.client.CreateSubscription(ctx, name, pubsub.SubscriptionConfig{
-		Topic:       topic,
-		AckDeadline: 20 * time.Second,
-	})
+func (c *Client) CreateSubscription(ctx context.Context, name string, cfg pubsub.SubscriptionConfig) error {
+	sub, err := c.client.CreateSubscription(ctx, name, cfg)
 	if err != nil {
 		c.ErrorLog(fmt.Sprintf("Error creating subscription: %v\n", sub), err)
 		return err
@@ -106,6 +104,7 @@ func (c *Client) HandleMessages(ctx context.Context, name string, handle func(co
 func (c *Client) ListTopics(ctx context.Context) ([]*pubsub.Topic, error) {
 	var topics []*pubsub.Topic
 	it := c.client.Topics(ctx)
+	c.Log(InfoLevel, "ListTopics: ")
 	for {
 		topic, err := it.Next()
 		if errors.Is(err, iterator.Done) {
@@ -119,7 +118,7 @@ func (c *Client) ListTopics(ctx context.Context) ([]*pubsub.Topic, error) {
 			return nil, err
 		}
 		topics = append(topics, topic)
-		c.Log(InfoLevel, " - topic: "+topic.String())
+		c.Log(InfoLevel, " Found - topic: "+topic.String())
 
 	}
 	return topics, nil
@@ -142,18 +141,10 @@ func (c *Client) Publish(ctx context.Context, topic, msg string) error {
 	return nil
 }
 
-func (c *Client) Log(level, str string) {
-	if !c.debug {
-		return
-	}
-
-	fmt.Printf("%s: %s\n", level, str)
+func (c *Client) Subscribe(name string) *pubsub.Subscription {
+	return c.client.Subscription(name)
 }
 
-func (c *Client) ErrorLog(str string, err error) {
-	if !c.debug {
-		return
-	}
-
-	fmt.Printf("%s: %s =>  %v\n", ErrorLevel, str, err)
+func (c *Client) PubSubClient() *pubsub.Client {
+	return c.client
 }
