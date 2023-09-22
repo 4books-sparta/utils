@@ -195,11 +195,17 @@ func (c *Client) Publish(ctx context.Context, t *pubsub.Topic, msg string, key s
 
 func (c *Client) PublishToTopicID(ctx context.Context, topic, msg, key string) error {
 	t := c.GetActiveTopic(topic)
+	if key != "" {
+		t.EnableMessageOrdering = true
+	}
 	return c.Publish(ctx, t, msg, key)
 }
 
 func (c *Client) PublishToTopicIDWithResume(ctx context.Context, topic, msg, key string) error {
 	t := c.GetActiveTopic(topic)
+	if key != "" {
+		t.EnableMessageOrdering = true
+	}
 	res := t.Publish(ctx, &pubsub.Message{
 		Data:        []byte(msg),
 		OrderingKey: key,
