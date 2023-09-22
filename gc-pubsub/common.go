@@ -198,6 +198,26 @@ func (c *Client) PublishToTopicID(ctx context.Context, topic, msg, key string) e
 	return c.Publish(ctx, t, msg, key)
 }
 
+func (c *Client) PublishToTopicIDWithResume(ctx context.Context, topic, msg, key string) error {
+	t := c.GetActiveTopic(topic)
+	res := t.Publish(ctx, &pubsub.Message{
+		Data:        []byte(msg),
+		OrderingKey: key,
+	})
+	var err error
+	_, err = res.Get(ctx)
+	if err != nil {
+		// Error handling code can be added here.
+		fmt.Printf("Failed to publish: %s\n", err)
+
+		// Resume publish on an ordering key that has had unrecoverable errors.
+		// After such an error publishes with this ordering key will fail
+		// until this method is called.
+		t.ResumePublish(key)
+	}
+	return err
+}
+
 func (c *Client) Subscribe(name string) *pubsub.Subscription {
 	return c.client.Subscription(name)
 }
