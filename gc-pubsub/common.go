@@ -179,12 +179,17 @@ func (c *Client) Publish(ctx context.Context, t *pubsub.Topic, msg string, key s
 	} else {
 		t.EnableMessageOrdering = true
 	}
-	result := t.Publish(ctx, &message)
 	c.SetActiveTopic(t)
+
+	result := t.Publish(ctx, &message)
+
 	// Block until the result is returned and a server-generated
 	// ID is returned for the published message.
 	id, err := result.Get(ctx)
 	if err != nil {
+		if key != "" {
+			t.ResumePublish(key) // Resume publishing for that key
+		}
 		c.ErrorLog("Publishing "+msg, err)
 		return err
 	}
@@ -199,29 +204,6 @@ func (c *Client) PublishToTopicID(ctx context.Context, topic, msg, key string) e
 		t.EnableMessageOrdering = true
 	}
 	return c.Publish(ctx, t, msg, key)
-}
-
-func (c *Client) PublishToTopicIDWithResume(ctx context.Context, topic, msg, key string) error {
-	t := c.GetActiveTopic(topic)
-	if key != "" {
-		t.EnableMessageOrdering = true
-	}
-	res := t.Publish(ctx, &pubsub.Message{
-		Data:        []byte(msg),
-		OrderingKey: key,
-	})
-	var err error
-	_, err = res.Get(ctx)
-	if err != nil {
-		// Error handling code can be added here.
-		fmt.Printf("Failed to publish: %s\n", err)
-
-		// Resume publish on an ordering key that has had unrecoverable errors.
-		// After such an error publishes with this ordering key will fail
-		// until this method is called.
-		t.ResumePublish(key)
-	}
-	return err
 }
 
 func (c *Client) Subscribe(name string) *pubsub.Subscription {
