@@ -244,9 +244,9 @@ func (c *Client) PanicHandler(todo func(args any)) {
 	os.Exit(1)
 }
 
-func (c *Client) Consume(ctx context.Context, sub *pubsub.Subscription, handler func(...interface{}) error, handlerArgs []interface{}) error {
+func (c *Client) Consume(ctx context.Context, sub *pubsub.Subscription, handler func(msg []byte) error) error {
 	return sub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
-		if handleErr := handler(message.Data, handlerArgs); handleErr != nil {
+		if handleErr := handler(message.Data); handleErr != nil {
 			c.Log(ErrorLevel, "NACK "+handleErr.Error()+string(message.Data))
 			fmt.Println("NACK ", handleErr.Error(), string(message.Data))
 			message.Nack()
