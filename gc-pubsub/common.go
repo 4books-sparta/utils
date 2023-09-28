@@ -230,13 +230,13 @@ func (c *Client) GetTopic(name string) *pubsub.Topic {
 	return c.client.Topic(name)
 }
 
-func (c *Client) PanicHandler(todo func()) {
+func (c *Client) PanicHandler(todo func(args any)) {
 	r := recover()
 	if r == nil {
 		return // no panic underway
 	}
 
-	todo()
+	todo(r)
 
 	// print debug stack
 	debug.PrintStack()
