@@ -4,7 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
+	"runtime/debug"
 	"sync"
+	"syscall"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/iterator"
@@ -20,6 +25,7 @@ type Client struct {
 	debug        bool
 	activeTopics map[string]*pubsub.Topic
 	mu           sync.Mutex
+	printError   bool
 }
 
 type ClientConfig struct {
@@ -44,6 +50,14 @@ func (c *Client) SetActiveTopic(t *pubsub.Topic) {
 	if _, ok := c.activeTopics[t.ID()]; !ok {
 		c.activeTopics[t.ID()] = t
 	}
+}
+
+func (c *Client) PrintErrors() {
+	c.printError = true
+}
+
+func (c *Client) HideErrors() {
+	c.printError = false
 }
 
 func (c *Client) StopActiveTopics() {
@@ -153,9 +167,7 @@ func (c *Client) ListTopics(ctx context.Context) ([]*pubsub.Topic, error) {
 	for {
 		topic, err := it.Next()
 		if errors.Is(err, iterator.Done) {
-			if c.debug {
-				fmt.Println("INFO: Iterator DONE")
-			}
+			c.Log(InfoLevel, "INFO: Iterator DONE")
 			break
 		}
 		if err != nil {
@@ -216,4 +228,92 @@ func (c *Client) PubSubClient() *pubsub.Client {
 
 func (c *Client) GetTopic(name string) *pubsub.Topic {
 	return c.client.Topic(name)
+}
+
+func (c *Client) PanicHandler(todo func()) {
+	r := recover()
+	if r == nil {
+		return // no panic underway
+	}
+
+	todo()
+
+	// print debug stack
+	debug.PrintStack()
+
+	os.Exit(1)
+}
+
+func (c *Client) Consume(ctx context.Context, sub *pubsub.Subscription, handler func(...interface{}) error, handlerArgs []interface{}) error {
+	return sub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
+		if handleErr := handler(message.Data, handlerArgs); handleErr != nil {
+			c.Log(ErrorLevel, "NACK "+handleErr.Error()+string(message.Data))
+			fmt.Println("NACK ", handleErr.Error(), string(message.Data))
+			message.Nack()
+			return
+		}
+		message.Ack()
+	})
+
+}
+
+func (c *Client) MustGetSub(ctx context.Context, subName string, topicName string, cancel func()) *pubsub.Subscription {
+	sub := c.getSub(ctx, subName, cancel)
+	if sub == nil {
+		topic := c.GetTopic(topicName)
+		err := c.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
+			Topic:                         topic,
+			AckDeadline:                   10 * time.Second,
+			RetainAckedMessages:           true,
+			RetentionDuration:             24 * 7 * time.Hour, // 1 week
+			EnableMessageOrdering:         true,
+			DeadLetterPolicy:              nil,
+			TopicMessageRetentionDuration: 0,
+			EnableExactlyOnceDelivery:     false,
+		})
+		if err != nil {
+			cancel()
+			panic(err)
+		}
+		//At this time subscription must exist
+		sub = c.getSub(ctx, subName, cancel)
+		if sub == nil {
+			cancel()
+			panic("unable-to-create-subscription")
+		}
+	}
+	return sub
+}
+
+func (c *Client) getSub(ctx context.Context, subName string, cancel func()) *pubsub.Subscription {
+	sub := c.Subscribe(subName)
+	if sub == nil {
+		cancel()
+		c.Log(InfoLevel, "Creating "+subName)
+		panic("no-subscription")
+	}
+
+	//Check if the sub exists on the server
+	exists, err := sub.Exists(ctx)
+	if err != nil {
+		cancel()
+		panic(err)
+	}
+
+	if !exists {
+		return nil
+	}
+
+	return sub
+}
+
+func (c *Client) ExitHandler(ctx context.Context, cancel func()) {
+	sigChan := make(chan os.Signal, 2)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigChan
+		cancel()
+		fmt.Println("Graceful consumer shutdown")
+		os.Exit(1)
+	}()
 }
