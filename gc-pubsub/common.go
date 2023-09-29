@@ -317,3 +317,15 @@ func (c *Client) ExitHandler(ctx context.Context, cancel func()) {
 		os.Exit(1)
 	}()
 }
+
+func (c *Client) ExitHandlerWithCallback(cb func(), cancel func()) {
+	sigChan := make(chan os.Signal, 2)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigChan
+		cb()
+		cancel()
+		fmt.Println("Graceful consumer shutdown")
+		os.Exit(1)
+	}()
+}
