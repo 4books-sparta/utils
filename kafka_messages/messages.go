@@ -61,3 +61,9 @@ type UserFunnelEvent struct {
 }
 
 type Client struct{}
+
+type UserLocalizedEvent struct {
+	UserId uint32    `json:"u" validate:"required"`
+	Ts     time.Time `json:"ts" validate:"required"`
+	Locale string    `json:"l"`
+}
