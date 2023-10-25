@@ -55,9 +55,19 @@ type SkillFollowedResponse struct {
 }
 
 type UserCachedContents struct {
-	UserId                uint32    `json:"user_id" gorm:"primary_key"`
+	UserId                uint32    `json:"user_id" gorm:"primary_key" validate:"required"`
+	Locale                string    `json:"locale" gorm:"primary_key" validate:"required"`
 	RecommendedArticles   string    `json:"recommended_articles"`
 	RecommendedArticlesAt time.Time `json:"recommended_articles_at"`
+}
+
+func NewUserCachedContent(uid uint32, lang string) UserCachedContents {
+	return UserCachedContents{
+		UserId:                uid,
+		Locale:                lang,
+		RecommendedArticles:   "{}",
+		RecommendedArticlesAt: time.Now(),
+	}
 }
 
 type RecommendedArticle struct {
