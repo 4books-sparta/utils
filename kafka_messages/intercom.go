@@ -14,6 +14,8 @@ const (
 	EventCompanyUpdated          = "cu"
 	EventUser2Company            = "u2c"
 	ObjectTypeCompany            = "cmp"
+	EventCouponAssigned          = "uca"
+	EventCouponConsumed          = "ucc"
 )
 
 type IntercomEvent struct {
