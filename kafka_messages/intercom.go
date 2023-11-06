@@ -16,6 +16,7 @@ const (
 	ObjectTypeCompany            = "cmp"
 	EventCouponAssigned          = "uca"
 	EventCouponConsumed          = "ucc"
+	EventLeadTagged              = "lt"
 )
 
 type IntercomEvent struct {
