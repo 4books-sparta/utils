@@ -40,12 +40,12 @@ func (ev *IntercomEvent) SetTheUpdateEmailOpenedNum(num uint) {
 	ev.Data = data
 }
 
-func (ev *IntercomEvent) GetTheUpdateEmailOpenedNum() uint {
+func (ev *IntercomEvent) GetTheUpdateEmailOpenedNum() int {
 	if ev.Data == nil {
 		return 0
 	}
 	if num, ok := ev.Data[KeyNum]; ok {
-		if intV, ok2 := num.(uint); ok2 {
+		if intV, ok2 := num.(int); ok2 {
 			return intV
 		}
 	}
