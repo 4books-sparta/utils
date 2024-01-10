@@ -40,13 +40,14 @@ func (ev *IntercomEvent) SetTheUpdateEmailOpenedNum(num uint) {
 	ev.Data = data
 }
 
-func (ev *IntercomEvent) GetTheUpdateEmailOpenedNum() int {
+func (ev *IntercomEvent) GetTheUpdateEmailOpenedNum() uint {
 	if ev.Data == nil {
 		return 0
 	}
 	if num, ok := ev.Data[KeyNum]; ok {
-		if intV, ok2 := num.(int); ok2 {
-			return intV
+		//JSON decode treats numbers as float64
+		if intV, ok2 := num.(float64); ok2 {
+			return uint(intV)
 		}
 	}
 	return 0
