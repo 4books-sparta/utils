@@ -21,6 +21,23 @@ func DecodeGetByIntIdRequest(_ context.Context, req *http.Request) (interface{},
 	return request, nil
 }
 
+func DecodeQueryPagedRequest(_ context.Context, req *http.Request) (interface{}, error) {
+	var request PagedRequest
+
+	if limit, ok := req.URL.Query()["limit"]; ok && len(limit) > 0 {
+		if v, err := strconv.Atoi(limit[0]); err == nil {
+			request.Limit = uint(v)
+		}
+	}
+	if offset, ok := req.URL.Query()["offset"]; ok && len(offset) > 0 {
+		if v, err := strconv.Atoi(offset[0]); err == nil {
+			request.Offset = uint(v)
+		}
+	}
+
+	return request, nil
+}
+
 func DecodeEmptyRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return struct{}{}, nil
 }
