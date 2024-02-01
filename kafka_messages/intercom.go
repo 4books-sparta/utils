@@ -18,6 +18,7 @@ const (
 	EventCouponConsumed          = "ucc"
 	EventLeadTagged              = "lt"
 	EventTheUpdateEmailOpened    = "teo"
+	EventSameUser                = "sus"
 	KeyNum                       = "num"
 )
 
