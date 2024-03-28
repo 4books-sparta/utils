@@ -240,9 +240,10 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 	}
 
 	if user == nil {
+		c.Log("intercom-user-not-matched")
 		//The user cant be created/updated if it's not verified
 		if !(u.Verified || u.UserVerified) {
-			fmt.Println("cant-create-new-user-not-verified", u.Email)
+			c.Log("cant-create-new-user-not-verified: " + u.Email)
 			return nil
 		}
 
@@ -256,6 +257,35 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 		user.CustomAttributes = make(map[string]interface{})
 	}
 
+	//Another check
+	oldV := false
+	oldEV := false
+
+	if v, ok := user.CustomAttributes["user_verified"]; ok {
+		if vb, ok := v.(bool); ok {
+			oldV = vb
+		}
+		if vb, ok := v.(string); ok {
+			oldV = vb == "true"
+		}
+	}
+	if v, ok := user.CustomAttributes["email_verified"]; ok {
+		if vb, ok := v.(bool); ok {
+			oldEV = vb
+		}
+		if vb, ok := v.(string); ok {
+			oldEV = vb == "true"
+		}
+	}
+
+	if !(oldV || oldEV || u.Verified || u.UserVerified) {
+		c.Log("cant-save-new-user-not-verified: " + u.Email)
+		return nil
+	}
+	c.Dump("OldV", oldV)
+	c.Dump("OldEV", oldEV)
+	c.Dump("NewEV", u.Verified)
+	c.Dump("NewV", u.UserVerified)
 	// ensure the base fields
 	preFill(u, user)
 
