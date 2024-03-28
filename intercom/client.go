@@ -240,6 +240,12 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 	}
 
 	if user == nil {
+		//The user cant be created/updated if it's not verified
+		if !(u.Verified || u.UserVerified) {
+			fmt.Println("cant-create-new-user-not-verified", u.Email)
+			return nil
+		}
+
 		// no user matching the given email
 		user = &intercom.User{
 			CustomAttributes: make(map[string]interface{}),
