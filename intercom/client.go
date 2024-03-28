@@ -203,7 +203,10 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 		if err == nil {
 			// no error retrieving it so we have a user
 			c.Dump("Matched by email: ", existing)
-			return &existing, nil
+			if u.Email == existing.Email {
+				return &existing, nil
+			}
+			c.Log("mismatch-user-found-but-different:" + u.Email + "::" + existing.Email)
 		}
 	}
 
@@ -223,7 +226,10 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 
 		// we have found a user using its id
 		c.Dump("Matched: ", existing)
-		return &existing, nil
+		if u.Id == existing.ID {
+			return &existing, nil
+		}
+		c.Log("mismatch-userId-found-but-different:" + u.Id + "::" + existing.ID)
 	}
 
 	// there was an unhandled error querying for the user
@@ -282,10 +288,6 @@ func (c *Client) save(u *User, custom map[string]interface{}) error {
 		c.Log("cant-save-new-user-not-verified: " + u.Email)
 		return nil
 	}
-	c.Dump("OldV", oldV)
-	c.Dump("OldEV", oldEV)
-	c.Dump("NewEV", u.Verified)
-	c.Dump("NewV", u.UserVerified)
 	// ensure the base fields
 	preFill(u, user)
 
