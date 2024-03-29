@@ -200,13 +200,10 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 	if u.Email != "" {
 		c.Log("matchUser by email" + u.Email)
 		existing, err = c.ic.Users.FindByEmail(u.Email)
-		if err == nil {
+		if err == nil && existing.Email != "" {
 			// no error retrieving it so we have a user
 			c.Dump("Matched by email: ", existing)
-			if u.Email == existing.Email {
-				return &existing, nil
-			}
-			c.Log("mismatch-user-found-but-different:" + u.Email + "::" + existing.Email)
+			return &existing, nil
 		}
 	}
 
@@ -226,7 +223,7 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 
 		// we have found a user using its id
 		c.Dump("Matched: ", existing)
-		if u.Id == existing.ID {
+		if u.Id == existing.UserID {
 			return &existing, nil
 		}
 		c.Log("mismatch-userId-found-but-different:" + u.Id + "::" + existing.ID)
