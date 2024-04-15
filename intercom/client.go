@@ -204,6 +204,9 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 			// no error retrieving it so we have a user
 			c.Dump("Matched by email: ", existing)
 			return &existing, nil
+		} else {
+			c.Dump("Error is", err)
+			c.Dump("Existing", existing)
 		}
 	}
 
