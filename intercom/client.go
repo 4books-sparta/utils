@@ -210,9 +210,9 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 		}
 	}
 
-	if u.Email == "" || isNotFound(err) {
+	if existing.Email == "" || isNotFound(err) {
 		// the user can not be found via email so try with our id
-		c.Log("matchUser by id" + u.Id)
+		c.Log("matchUser by id " + u.Id)
 		existing, err = c.ic.Users.FindByUserID(u.Id)
 		if isNotFound(err) {
 			// the user was not found even with an id  so we can
@@ -229,7 +229,7 @@ func (c *Client) matchUser(u *User) (*intercom.User, error) {
 		if u.Id == existing.UserID {
 			return &existing, nil
 		}
-		c.Log("mismatch-userId-found-but-different:" + u.Id + "::" + existing.ID)
+		c.Log("mismatch-userId-found-but-different: " + u.Id + "::" + existing.ID)
 	}
 
 	// there was an unhandled error querying for the user
