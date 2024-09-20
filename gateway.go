@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/4books-sparta/utils/cache"
 	"net/http"
 
 	"github.com/go-kit/kit/endpoint"
@@ -57,7 +58,7 @@ func (f *Forwarder) SecureForward(e endpoint.Endpoint, dec kitHttp.DecodeRequest
 func plugRefresh(ctx context.Context, req *http.Request) context.Context {
 	_, refresh := req.URL.Query()["refresh"]
 	if refresh {
-		ctx = GetContextWithForceRefreshCache(ctx, true)
+		ctx = cache.GetContextWithForceRefreshCache(ctx, true)
 	}
 	return ctx
 }

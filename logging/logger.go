@@ -1,4 +1,4 @@
-package utils
+package logging
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"github.com/go-kit/kit/log"
 )
 
-type LoggingReporter struct {
+type Logging struct {
 	logger log.Logger
 }
 
@@ -16,10 +16,10 @@ type ErrorReporter interface {
 }
 
 func NewLoggingReporter(logger log.Logger) ErrorReporter {
-	return &LoggingReporter{logger}
+	return &Logging{logger}
 }
 
-func (l *LoggingReporter) Report(err error, args ...string) {
+func (l *Logging) Report(err error, args ...string) {
 	in := []interface{}{"error", err.Error()}
 	for _, a := range args {
 		in = append(in, a)
@@ -28,7 +28,7 @@ func (l *LoggingReporter) Report(err error, args ...string) {
 	_ = l.logger.Log(in...)
 }
 
-func (l *LoggingReporter) Message(msg string, args ...string) {
+func (l *Logging) Message(msg string, args ...string) {
 	in := []interface{}{msg, "::"}
 	for _, a := range args {
 		in = append(in, a)

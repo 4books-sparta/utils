@@ -1,4 +1,4 @@
-package utils
+package redis
 
 import (
 	"context"
@@ -6,39 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
+	"github.com/4books-sparta/utils/cache"
+	"github.com/4books-sparta/utils/logging"
 	"strings"
 	"time"
 
 	"github.com/spf13/viper"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
-const (
-	RedisDefaultHost        = "localhost"
-	RedisDefaultPort        = "6379"
-	RedisSkipRequestedError = "redis-skipped-by-context"
-	RedisForceRefreshKey    = "RedisRefresh"
-	RedisSkipKey            = "RedisSkip"
-
-	RedisShortExpSeconds   = 60                //1 minute
-	RedisDefaultExpSeconds = 60 * 10           //10 minutes
-	RedisMediumExpSeconds  = 60 * 30           //30 minutes
-	RedisLongExpSeconds    = 60 * 60           //1 hour
-	RedisInfiniteExp       = 60 * 60 * 24 * 30 //1 month
-	RedisOneDayExp         = 60 * 60 * 24      //1 day
-	RedisVeryLongUserExp   = 60 * 60 * 2       //2 hours
-	RedisNotAvailableError = "redis-not-available"
-
-	RedisMsCKGetUserSkillXPs = "msg|usk|xp"
-)
-
-func RedisGetUserSkillXPsCacheKey(uid uint32, lang string) string {
-	return RedisMsCKGetUserSkillXPs + "|" + strconv.Itoa(int(uid)) + "|" + lang
-}
-
-type RedisConfig struct {
+type Config struct {
 	Enabled   bool
 	IsCluster bool
 	Host      string
@@ -49,8 +27,8 @@ type RedisConfig struct {
 	Timeout   time.Duration
 }
 
-func GetRedisConfig() *RedisConfig {
-	return &RedisConfig{
+func GetConfig() *Config {
+	return &Config{
 		Enabled:   viper.GetString("redis_cache_enabled") == "yes",
 		Host:      viper.GetString("redis_host"),
 		Port:      viper.GetString("redis_port"),
@@ -62,46 +40,46 @@ func GetRedisConfig() *RedisConfig {
 	}
 }
 
-func (rc *RedisConfig) GetAddr() string {
+func (rc *Config) GetAddr() string {
 	host := rc.Host
 	if len(host) == 0 {
-		host = RedisDefaultHost
+		host = cache.RedisDefaultHost
 	}
 
 	port := rc.Port
 	if port == "" {
-		port = RedisDefaultPort
+		port = cache.RedisDefaultPort
 	}
 
 	return host + ":" + port
 }
 
-func (rc *RedisConfig) GetAddresses() []string {
+func (rc *Config) GetAddresses() []string {
 	if !rc.IsCluster {
 		return []string{rc.GetAddr()}
 	}
 	return strings.Split(rc.Nodes, ",")
 }
 
-func RedisRemoveKey(c redis.UniversalClient, key string) error {
+func RemoveKey(c redis.UniversalClient, key string) error {
 	if c == nil {
-		return errors.New(RedisNotAvailableError)
+		return errors.New(cache.RedisNotAvailableError)
 	}
 
 	return c.Del(context.Background(), key).Err()
 }
 
-func RedisRemoveSlice(c redis.UniversalClient, keys []string) error {
+func RemoveSlice(c redis.UniversalClient, keys []string) error {
 	if c == nil {
-		return errors.New(RedisNotAvailableError)
+		return errors.New(cache.RedisNotAvailableError)
 	}
 
 	return c.Del(context.Background(), keys...).Err()
 }
 
-func RedisRemoveKeys(c redis.UniversalClient, startWith string) error {
+func RemoveKeys(c redis.UniversalClient, startWith string) error {
 	if c == nil {
-		return errors.New(RedisNotAvailableError)
+		return errors.New(cache.RedisNotAvailableError)
 	}
 
 	ctx := context.Background()
@@ -121,14 +99,14 @@ func RedisRemoveKeys(c redis.UniversalClient, startWith string) error {
 	return nil
 }
 
-func RedisStore(c redis.UniversalClient, key string, value interface{}, seconds int, rep ErrorReporter) error {
+func Store(c redis.UniversalClient, key string, value interface{}, seconds int, rep logging.ErrorReporter) error {
 	if value == nil {
 		//Skip
 		return nil
 	}
 	if c == nil {
 		fmt.Println("REDIS not available key: ", key)
-		return errors.New(RedisNotAvailableError)
+		return errors.New(cache.RedisNotAvailableError)
 	}
 
 	p, err := json.Marshal(value)
@@ -149,10 +127,10 @@ func RedisStore(c redis.UniversalClient, key string, value interface{}, seconds 
 	return nil
 }
 
-func RedisHStore(c redis.UniversalClient, key string, title string, value interface{}, seconds int, rep ErrorReporter) error {
+func HStore(c redis.UniversalClient, key string, title string, value interface{}, seconds int, rep logging.ErrorReporter) error {
 	if c == nil {
 		fmt.Println("REDIS NOT AVAILABLE")
-		return errors.New(RedisNotAvailableError)
+		return errors.New(cache.RedisNotAvailableError)
 	}
 
 	val, err := SerializeValue(value)
@@ -178,7 +156,7 @@ func RedisHStore(c redis.UniversalClient, key string, title string, value interf
 	return nil
 }
 
-func RedisSetKeyExpiration(c redis.UniversalClient, key string, seconds int) error {
+func SetKeyExpiration(c redis.UniversalClient, key string, seconds int) error {
 	return c.Expire(context.Background(), key, time.Duration(seconds)*time.Second).Err()
 }
 
@@ -198,12 +176,12 @@ func SerializeValue(i interface{}) (string, error) {
 	return string(data), nil
 }
 
-func RedisGet(ctx context.Context, c redis.UniversalClient, key string, dest interface{}) error {
+func Get(ctx context.Context, c redis.UniversalClient, key string, dest interface{}) error {
 	if c == nil {
-		return errors.New(RedisNotAvailableError)
+		return errors.New(cache.RedisNotAvailableError)
 	}
-	if IsForceRefreshCacheContext(ctx) || IsSkipCacheContext(ctx) {
-		return errors.New(RedisSkipRequestedError)
+	if cache.IsForceRefreshCacheContext(ctx) || cache.IsSkipCacheContext(ctx) {
+		return errors.New(cache.RedisSkipRequestedError)
 	}
 
 	p, err := c.Get(context.Background(), key).Bytes()
@@ -213,12 +191,12 @@ func RedisGet(ctx context.Context, c redis.UniversalClient, key string, dest int
 	return json.Unmarshal(p, dest)
 }
 
-func RedisHGet(ctx context.Context, c redis.UniversalClient, key string, title string, dest interface{}) error {
+func HGet(ctx context.Context, c redis.UniversalClient, key string, title string, dest interface{}) error {
 	if c == nil {
-		return errors.New(RedisNotAvailableError)
+		return errors.New(cache.RedisNotAvailableError)
 	}
-	if IsForceRefreshCacheContext(ctx) || IsSkipCacheContext(ctx) {
-		return errors.New(RedisSkipRequestedError)
+	if cache.IsForceRefreshCacheContext(ctx) || cache.IsSkipCacheContext(ctx) {
+		return errors.New(cache.RedisSkipRequestedError)
 	}
 
 	p, err := c.HGet(context.Background(), key, title).Bytes()
@@ -228,33 +206,7 @@ func RedisHGet(ctx context.Context, c redis.UniversalClient, key string, title s
 	return json.Unmarshal(p, dest)
 }
 
-func GetContextWithForceRefreshCache(ctx context.Context, val bool) context.Context {
-	return context.WithValue(ctx, RedisForceRefreshKey, val)
-}
-
-func GetContextWithSkipCache(ctx context.Context, val bool) context.Context {
-	return context.WithValue(ctx, RedisSkipKey, val)
-}
-
-func IsForceRefreshCacheContext(ctx context.Context) bool {
-	v, ok := ctx.Value(RedisForceRefreshKey).(bool)
-	if !ok {
-		return false
-	}
-
-	return v
-}
-
-func IsSkipCacheContext(ctx context.Context) bool {
-	v, ok := ctx.Value(RedisSkipKey).(bool)
-	if !ok {
-		return false
-	}
-
-	return v
-}
-
-func NewRedisClient(config *RedisConfig) (redis.UniversalClient, error) {
+func NewClient(config *Config) (redis.UniversalClient, error) {
 	if !config.Enabled {
 		fmt.Println("No-redis")
 		return nil, errors.New("no-redis")

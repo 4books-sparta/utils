@@ -3,17 +3,16 @@ package kafka2
 import (
 	"errors"
 	"fmt"
+	"github.com/4books-sparta/utils/logging"
 	"os"
 	"runtime/debug"
-
-	"github.com/4books-sparta/utils"
 )
 
 type Stoppable interface {
 	Stop() error
 }
 
-func PanicHandler(rep utils.ErrorReporter, clientId string, k Stoppable) {
+func PanicHandler(rep logging.ErrorReporter, clientId string, k Stoppable) {
 	r := recover()
 	if r == nil {
 		return // no panic underway
