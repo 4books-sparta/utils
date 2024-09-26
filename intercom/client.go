@@ -574,10 +574,8 @@ func (c *Client) AttachUserToCompany(iCid, uid, cid string) error {
 			}
 		}
 		if company.ID == "" {
-			if err != nil {
-				c.Log("unable-to-fetch-company: " + cid)
-				return errors.New("unable-to-fetch-company")
-			}
+			c.Log("unable-to-fetch-company: " + cid)
+			return errors.New("unable-to-fetch-company")
 		}
 		iCid = company.ID
 	}
