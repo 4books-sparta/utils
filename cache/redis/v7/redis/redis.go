@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/4books-sparta/utils/cache"
-	"github.com/4books-sparta/utils/logging"
 	"strings"
 	"time"
+
+	"github.com/4books-sparta/utils/cache"
+	"github.com/4books-sparta/utils/logging"
 
 	"github.com/spf13/viper"
 
@@ -143,6 +144,7 @@ func HStore(c redis.UniversalClient, key string, title string, value interface{}
 		err := c.HSet(ctx, key, title, vv).Err()
 		if err != nil {
 			rep.Report(err, "key", key, "title", title, "val", vv)
+			return
 		}
 
 		if seconds > 0 {
@@ -152,6 +154,41 @@ func HStore(c redis.UniversalClient, key string, title string, value interface{}
 			}
 		}
 	}(val)
+
+	return nil
+}
+
+func HStoreAll(c redis.UniversalClient, key string, values map[string]interface{}, seconds int, rep logging.ErrorReporter) error {
+	if c == nil {
+		fmt.Println("REDIS NOT AVAILABLE")
+		return errors.New(cache.RedisNotAvailableError)
+	}
+
+	params := make([]interface{}, 0)
+	for k, v := range values {
+		params = append(params, k)
+		val, err := SerializeValue(v)
+		if err != nil {
+			return err
+		}
+		params = append(params, val)
+	}
+
+	go func(pp []interface{}) {
+		ctx := context.Background()
+		err := c.HSet(ctx, key, pp...).Err()
+		if err != nil {
+			rep.Report(err, "key", key)
+			return
+		}
+
+		if seconds > 0 {
+			err = c.Expire(ctx, key, time.Duration(seconds)*time.Second).Err()
+			if err != nil {
+				rep.Report(err, "key", key)
+			}
+		}
+	}(params)
 
 	return nil
 }
