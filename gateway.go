@@ -2,21 +2,33 @@ package utils
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"github.com/4books-sparta/utils/cache"
+	"github.com/google/uuid"
+	"io"
 	"net/http"
 
 	"github.com/go-kit/kit/endpoint"
 	kitHttp "github.com/go-kit/kit/transport/http"
 )
 
+type ApiResponseType string
+
 const (
-	AuthCtxKey = "req-auth"
+	AuthCtxKey                       = "req-auth"
+	ApiResponseTypeJson              = ApiResponseType("application/json")
+	ApiResponseTypeXml               = ApiResponseType("application/xml")
+	ApiResponseTypeTempRedirect      = ApiResponseType("302")
+	ApiResponseTypePermanentRedirect = ApiResponseType("301")
+	ApiResponseTypeCsv               = ApiResponseType("text/csv")
+	ApiResponseTypeFile              = ApiResponseType("text/plain")
 )
 
 type Forwarder struct {
-	auth Authorizer
+	auth            Authorizer      `json:"auth,omitempty"`
+	ApiResponseType ApiResponseType `json:"response_type,omitempty"`
 }
 
 type Authorization struct {
@@ -35,6 +47,13 @@ func NewForwarder(af Authorizer) *Forwarder {
 	}
 }
 
+func NewForwarderWithResponseType(af Authorizer, rt ApiResponseType) *Forwarder {
+	return &Forwarder{
+		auth:            af,
+		ApiResponseType: rt,
+	}
+}
+
 func (f *Forwarder) forward(e endpoint.Endpoint, dec kitHttp.DecodeRequestFunc, opts ...kitHttp.ServerOption) *kitHttp.Server {
 	mid := []kitHttp.ServerOption{
 		kitHttp.ServerErrorEncoder(errorEncoder),
@@ -43,6 +62,21 @@ func (f *Forwarder) forward(e endpoint.Endpoint, dec kitHttp.DecodeRequestFunc, 
 		kitHttp.ServerAfter(writeCORS),
 	}
 	mid = append(mid, opts...)
+
+	switch f.ApiResponseType {
+	case ApiResponseTypeJson:
+		return kitHttp.NewServer(e, dec, encodeResponse, mid...)
+	case ApiResponseTypeTempRedirect:
+		return kitHttp.NewServer(e, dec, tempRedirectEncodedResponse, mid...)
+	case ApiResponseTypePermanentRedirect:
+		return kitHttp.NewServer(e, dec, permanentRedirectEncodedResponse, mid...)
+	case ApiResponseTypeCsv:
+		return kitHttp.NewServer(e, dec, csvEncodedResponse, mid...)
+	case ApiResponseTypeXml:
+		return kitHttp.NewServer(e, dec, xmlEncodedResponse, mid...)
+	case ApiResponseTypeFile:
+		return kitHttp.NewServer(e, dec, fileEncodedResponse, mid...)
+	}
 
 	return kitHttp.NewServer(e, dec, encodeResponse, mid...)
 }
@@ -100,6 +134,82 @@ func encodeResponse(_ context.Context, w http.ResponseWriter, response interface
 
 	w.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(response)
+}
+
+func tempRedirectEncodedResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	if v, ok := response.(string); ok {
+		w.Header().Set("Location", v)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		return nil
+	}
+
+	return errors.New("response is not a string")
+}
+
+func permanentRedirectEncodedResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	if v, ok := response.(string); ok {
+		w.Header().Set("Location", v)
+		w.WriteHeader(http.StatusPermanentRedirect)
+		return nil
+	}
+
+	return errors.New("response is not a string")
+}
+
+type DownloadFile interface {
+	Filename() string
+	ContentType() string
+	ContentReader() io.Reader
+}
+
+func fileEncodedResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	dl, ok := response.(DownloadFile)
+	if !ok {
+		return errors.New("response is not of type DownloadFile")
+	}
+
+	w.Header().Set("Content-Type", dl.ContentType())
+	w.Header().Set("Content-Disposition", "attachment;filename="+dl.Filename())
+	_, err := io.Copy(w, dl.ContentReader())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return err
+	}
+	return nil
+}
+
+func xmlEncodedResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	dl, ok := response.(DownloadFile)
+	if !ok {
+		return errors.New("response is not of type DownloadFile")
+	}
+
+	w.Header().Set("Content-Type", string(ApiResponseTypeXml))
+	w.Header().Set("Content-Disposition", "attachment;filename="+dl.Filename())
+	_, err := io.Copy(w, dl.ContentReader())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return err
+	}
+	return nil
+}
+
+func csvEncodedResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	rows, ok := response.([][]string)
+	if !ok {
+		return errors.New("response is not a [][]string")
+	}
+
+	w.Header().Set("Content-Type", "text/csv")
+	fn := uuid.New().String()
+	w.Header().Set("Content-Disposition", "attachment;filename=dl_"+fn+".csv")
+
+	wr := csv.NewWriter(w)
+	if err := wr.WriteAll(rows); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return err
+	}
+	return nil
 }
 
 func writeCORS(ctx context.Context, w http.ResponseWriter) context.Context {
