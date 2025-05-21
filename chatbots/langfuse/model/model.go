@@ -23,18 +23,19 @@ type IngestionEvent struct {
 }
 
 type Trace struct {
-	ID        string     `json:"id,omitempty"`
-	Timestamp *time.Time `json:"timestamp,omitempty"`
-	Name      string     `json:"name,omitempty"`
-	UserID    string     `json:"userId,omitempty"`
-	Input     any        `json:"input,omitempty"`
-	Output    any        `json:"output,omitempty"`
-	SessionID string     `json:"sessionId,omitempty"`
-	Release   string     `json:"release,omitempty"`
-	Version   string     `json:"version,omitempty"`
-	Metadata  any        `json:"metadata,omitempty"`
-	Tags      []string   `json:"tags,omitempty"`
-	Public    bool       `json:"public,omitempty"`
+	ID          string     `json:"id,omitempty"`
+	Timestamp   *time.Time `json:"timestamp,omitempty"`
+	Environment string     `json:"environment,omitempty"`
+	Name        string     `json:"name,omitempty"`
+	UserID      string     `json:"userId,omitempty"`
+	Input       any        `json:"input,omitempty"`
+	Output      any        `json:"output,omitempty"`
+	SessionID   string     `json:"sessionId,omitempty"`
+	Release     string     `json:"release,omitempty"`
+	Version     string     `json:"version,omitempty"`
+	Metadata    any        `json:"metadata,omitempty"`
+	Tags        []string   `json:"tags,omitempty"`
+	Public      bool       `json:"public,omitempty"`
 }
 
 type ObservationLevel string
@@ -98,6 +99,7 @@ type Score struct {
 	Value         float64 `json:"value,omitempty"`
 	ObservationID string  `json:"observationId,omitempty"`
 	Comment       string  `json:"comment,omitempty"`
+	Environment   string  `json:"environment,omitempty"`
 }
 
 type Span struct {

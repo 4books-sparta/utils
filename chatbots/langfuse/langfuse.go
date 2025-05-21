@@ -21,6 +21,7 @@ type Langfuse struct {
 	flushInterval time.Duration
 	client        *api.Client
 	observer      *observer.Observer[model.IngestionEvent]
+	environment   string
 }
 
 func New(ctx context.Context) *Langfuse {
@@ -50,6 +51,11 @@ func New(ctx context.Context) *Langfuse {
 	return l
 }
 
+func (l *Langfuse) WithEnvironment(env string) *Langfuse {
+	l.environment = env
+	return l
+}
+
 func (l *Langfuse) WithFlushInterval(d time.Duration) *Langfuse {
 	l.flushInterval = d
 	return l
@@ -71,6 +77,7 @@ func ingest(ctx context.Context, client *api.Client, events []model.IngestionEve
 }
 
 func (l *Langfuse) Trace(t *model.Trace) (*model.Trace, error) {
+	t.Environment = l.environment
 	t.ID = buildID(&t.ID)
 	l.observer.Dispatch(
 		model.IngestionEvent{
@@ -146,7 +153,7 @@ func (l *Langfuse) Score(s *model.Score) (*model.Score, error) {
 		return nil, fmt.Errorf("trace ID is required")
 	}
 	s.ID = buildID(&s.ID)
-
+	s.Environment = l.environment
 	l.observer.Dispatch(
 		model.IngestionEvent{
 			ID:        buildID(nil),
