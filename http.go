@@ -288,6 +288,9 @@ func (msc MicroserviceClient) getUrl(path string) string {
 	if msc.GetUrl != nil {
 		return msc.GetUrl(path)
 	}
+	if msc.Port == 0 {
+		return msc.Url + path
+	}
 	return msc.Url + ":" + strconv.Itoa(int(msc.Port)) + path
 }
 
