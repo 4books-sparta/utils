@@ -6,8 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"github.com/twmb/franz-go/pkg/sasl/aws"
 	"github.com/twmb/franz-go/pkg/sasl/plain"
@@ -217,12 +216,13 @@ func KafkaAuth(cfg *kafkaConfig) (kgo.Opt, error) {
 				Pass: cfg.saslPassword,
 			}.AsMechanism()), nil
 		case SASL_MECHANISM_IAM:
-			sess, err := session.NewSession()
+			awsCfg, err := config.LoadDefaultConfig(context.Background())
 			if err != nil {
-				die("unable to initialize aws session: %v", err)
+				return nil, fmt.Errorf("unable to load aws config: %w", err)
 			}
+
 			return kgo.SASL(aws.ManagedStreamingIAM(func(ctx context.Context) (aws.Auth, error) {
-				val, err := sess.Config.Credentials.GetWithContext(ctx)
+				val, err := awsCfg.Credentials.Retrieve(ctx)
 				if err != nil {
 					return aws.Auth{}, err
 				}
