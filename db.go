@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -32,7 +33,8 @@ type SqlDatabase struct {
 
 func (c DbConfig) connectUrl() string {
 	const template = "postgres://%s:%s@%s:%d/%s?sslmode=%s"
-	return fmt.Sprintf(template, c.Username, c.Password, c.Host, c.Port, c.Name, c.SSL)
+	encodedPassword := url.QueryEscape(c.Password)
+	return fmt.Sprintf(template, c.Username, encodedPassword, c.Host, c.Port, c.Name, c.SSL)
 }
 
 func NewDatabase(c DbConfig) (*SqlDatabase, error) {
