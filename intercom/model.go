@@ -55,3 +55,11 @@ type Response struct {
 	User         *User                  `json:"user"`
 	CustomFields map[string]interface{} `json:"custom_fields,omitempty"`
 }
+
+type SimpleEvent struct {
+	EventName string                 `json:"event_name"`
+	CreatedAt int64                  `json:"created_at"`
+	UserId    string                 `json:"user_id"`
+	Email     string                 `json:"email"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+}

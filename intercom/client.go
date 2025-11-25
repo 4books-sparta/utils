@@ -597,3 +597,16 @@ func (c *Client) AttachUserToCompany(iCid, uid, cid string) error {
 	_, err = c.ic.Users.Save(u)
 	return err
 }
+
+func (c *Client) SaveEvent(ev *SimpleEvent) error {
+	if ev == nil {
+		return nil
+	}
+	return c.ic.Events.Save(&intercom.Event{
+		Email:     ev.Email,
+		UserID:    ev.UserId,
+		EventName: ev.EventName,
+		CreatedAt: ev.CreatedAt,
+		Metadata:  ev.Metadata,
+	})
+}
