@@ -1,6 +1,10 @@
 package kafka_messages
 
-import "time"
+import (
+	"time"
+
+	"github.com/4books-sparta/utils/intercom"
+)
 
 const (
 	EventBookStarted             = "bs"
@@ -10,6 +14,7 @@ const (
 	EventSkillFollowChanged      = "sfc"
 	EventSubscriptionUpdated     = "su"
 	EventFreemiumCreated         = "fs"
+	EventSimple                  = "se"
 	EventEmailChanged            = "ec"
 	EventCompanyUpdated          = "cu"
 	EventUser2Company            = "u2c"
@@ -21,7 +26,18 @@ const (
 	EventSameUser                = "sus"
 	EventPsychoWebhook           = "psy"
 	KeyNum                       = "num"
+	MetaKeyEvent                 = "event"
 )
+
+func NewIntercomSimpleEvent(userId uint32, ev intercom.SimpleEvent) *IntercomEvent {
+	data := make(map[string]interface{})
+	data[MetaKeyEvent] = ev
+	return &IntercomEvent{
+		UserId:    userId,
+		EventName: EventSimple,
+		Data:      data,
+	}
+}
 
 type IntercomEvent struct {
 	UserId    uint32                 `json:"u"`
