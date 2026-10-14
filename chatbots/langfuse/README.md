@@ -1,151 +1,76 @@
-# Langfuse Go SDK
+# langfuse
 
+Go client used by the chatbots to send traces and scores to [Langfuse](https://langfuse.com) (v4).
 
-[![GoDoc](https://godoc.org/github.com/henomis/langfuse-go?status.svg)](https://godoc.org/github.com/henomis/langfuse-go) [![Go Report Card](https://goreportcard.com/badge/github.com/henomis/langfuse-go)](https://goreportcard.com/report/github.com/henomis/langfuse-go) [![GitHub release](https://img.shields.io/github/release/henomis/langfuse-go.svg)](https://github.com/henomis/langfuse-go/releases)
+- Traces, spans, generations and events are exported as OpenTelemetry spans
+  over OTLP/HTTP to `<LANGFUSE_HOST>/api/public/otel/v1/traces`, with the
+  `x-langfuse-ingestion-version: 4` header so they are ingested in real time.
+  Spans are batched by the OTel `BatchSpanProcessor`.
+- Scores are still sent to the public ingestion API (`score-create` events),
+  one asynchronous request per score.
 
-This is [Langfuse](https://langfuse.com)'s **unofficial** Go client, designed to enable you to use Langfuse's services easily from your own applications.
+## Configuration
 
-## Langfuse
-
-[Langfuse](https://langfuse.com) traces, evals, prompt management and metrics to debug and improve your LLM application.
-
-
-## API support
-
-| **Index Operations**  | **Status** |
+| Variable | Description |
 | --- | --- |
-| Trace | 🟢 | 
-| Generation | 🟢 |
-| Span | 🟢 |
-| Event | 🟢 |
-| Score | 🟢 |
+| `LANGFUSE_HOST` | Langfuse base URL, default `https://cloud.langfuse.com` |
+| `LANGFUSE_PUBLIC_KEY` | Project public key. When empty, tracing and scores are disabled (no-op) |
+| `LANGFUSE_SECRET_KEY` | Project secret key |
 
+Set `DEBUG` to log score ingestion errors. Exporter errors are always logged.
 
-
-
-## Getting started
-
-### Installation
-
-You can load langfuse-go into your project by using:
-```
-go get github.com/henomis/langfuse-go
-```
-
-
-### Configuration
-Just like the official Python SDK, these three environment variables will be used to configure the Langfuse client:
-
-- `LANGFUSE_HOST`: The host of the Langfuse service.
-- `LANGFUSE_PUBLIC_KEY`: Your public key for the Langfuse service.
-- `LANGFUSE_SECRET_KEY`: Your secret key for the Langfuse service.
-
-
-### Usage
-
-Please refer to the [examples folder](examples/cmd/) to see how to use the SDK.
-
-Here below a simple usage example:
+## Usage
 
 ```go
-package main
+lf := langfuse.New(ctx).
+	WithServiceName("chatbot-ms").
+	WithEnvironment("production").
+	WithFlushInterval(time.Second)
+defer lf.Shutdown(context.Background())
 
-import (
-	"context"
+tr, _ := lf.Trace(&model.Trace{
+	ID:        messageID, // UUID
+	Name:      "qa",
+	UserID:    "42",
+	SessionID: sessionID,
+	Input:     map[string]string{"q": question},
+})
 
-	"github.com/henomis/langfuse-go"
-	"github.com/henomis/langfuse-go/model"
-)
+root := &model.Span{TraceID: tr.ID, Name: "StreamChat"}
+lf.Span(root, nil)
 
-func main() {
-	l := langfuse.New()
+gen := &model.Generation{TraceID: tr.ID, Name: "streamQ", Model: "claude-sonnet-4-5", Input: messages}
+lf.Generation(gen, &root.ID)
 
-	err := l.Trace(&model.Trace{Name: "test-trace"})
-	if err != nil {
-		panic(err)
-	}
+lf.Event(&model.Event{TraceID: tr.ID, Name: "error", Level: model.ObservationLevelError, StatusMessage: err.Error()}, &root.ID)
 
-	err = l.Span(&model.Span{Name: "test-span"})
-	if err != nil {
-		panic(err)
-	}
+gen.Output = answer
+gen.Usage = model.Usage{Input: inTokens, Output: outTokens}
+lf.GenerationEnd(gen)
 
-	err = l.Generation(
-		&model.Generation{
-			Name:  "test-generation",
-			Model: "gpt-3.5-turbo",
-			ModelParameters: model.M{
-				"maxTokens":   "1000",
-				"temperature": "0.9",
-			},
-			Input: []model.M{
-				{
-					"role":    "system",
-					"content": "You are a helpful assistant.",
-				},
-				{
-					"role":    "user",
-					"content": "Please generate a summary of the following documents \nThe engineering department defined the following OKR goals...\nThe marketing department defined the following OKR goals...",
-				},
-			},
-			Metadata: model.M{
-				"key": "value",
-			},
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
+lf.SetTraceOutput(tr.ID, answer)
+lf.SpanEnd(root)
 
-	err = l.Event(
-		&model.Event{
-			Name: "test-event",
-			Metadata: model.M{
-				"key": "value",
-			},
-			Input: model.M{
-				"key": "value",
-			},
-			Output: model.M{
-				"key": "value",
-			},
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	err = l.GenerationEnd(
-		&model.Generation{
-			Output: model.M{
-				"completion": "The Q3 OKRs contain goals for multiple teams...",
-			},
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	err = l.Score(
-		&model.Score{
-			Name:  "test-score",
-			Value: 0.9,
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	err = l.SpanEnd(&model.Span{})
-	if err != nil {
-		panic(err)
-	}
-
-	l.Flush(context.Background())
-
-}
+lf.Score(&model.Score{ID: "s_" + messageID, TraceID: messageID, Name: "like", Value: 1})
 ```
 
-## Who uses langfuse-go?
+The `With*` options must be applied before the first trace: the OTel
+provider is built on first use.
 
-* [LinGoose](https://github.com/henomis/lingoose) Go framework for building awesome LLM apps
+## Notes
+
+- **Trace IDs.** A UUID trace ID is mapped to the OTel trace ID with the same
+  16 bytes (lowercase, no dashes), so `2f1c9a3e-4b5d-...` appears in Langfuse
+  as `2f1c9a3e4b5d...`. `Score` applies the same conversion, so scores attach
+  to the right trace. Non-UUID IDs get a random OTel trace ID.
+- **Observation IDs** are local keys mapping model IDs to live spans; Langfuse
+  shows the OTel span IDs. An observation without a known parent is attached
+  to the root span of its trace.
+- **Trace attributes** (name, user, session, tags, metadata, release, version,
+  environment, public) are read from the `*model.Trace` passed to `Trace` when
+  each observation ends and copied onto every span. Trace input and output are
+  set on the root span only.
+- **Flush** exports the spans that have ended. **Shutdown** ends the spans
+  still open (level `ERROR`, status message `unterminated`), flushes, waits for
+  pending scores and stops the provider: call it on SIGTERM, otherwise the
+  last batch is lost.

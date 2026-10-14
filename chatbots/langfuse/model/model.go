@@ -1,6 +1,11 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
+)
 
 type IngestionEventType string
 
@@ -132,3 +137,15 @@ type Event struct {
 }
 
 type M map[string]interface{}
+
+// TraceIDFromUUID converts a UUID into the OTel trace ID with the same 16
+// bytes, i.e. the lowercase UUID without dashes. It returns false when id is
+// not a valid, non-nil UUID.
+func TraceIDFromUUID(id string) (trace.TraceID, bool) {
+	u, err := uuid.Parse(id)
+	if err != nil {
+		return trace.TraceID{}, false
+	}
+	tid := trace.TraceID(u)
+	return tid, tid.IsValid()
+}
