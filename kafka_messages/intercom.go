@@ -25,6 +25,7 @@ const (
 	EventTheUpdateEmailOpened    = "teo"
 	EventSameUser                = "sus"
 	EventPsychoWebhook           = "psy"
+	CustomFieldSet               = "cfs"
 	KeyNum                       = "num"
 	MetaKeyEvent                 = "event"
 )
